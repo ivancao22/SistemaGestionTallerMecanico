@@ -46,6 +46,7 @@
             // 
             // btnObtenerMonto
             // 
+            this.btnObtenerMonto.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)));
             this.btnObtenerMonto.Location = new System.Drawing.Point(126, 228);
             this.btnObtenerMonto.Name = "btnObtenerMonto";
             this.btnObtenerMonto.Size = new System.Drawing.Size(83, 35);
@@ -56,6 +57,7 @@
             // 
             // label1
             // 
+            this.label1.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label1.Location = new System.Drawing.Point(60, 165);
@@ -66,6 +68,7 @@
             // 
             // txtMonto
             // 
+            this.txtMonto.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)));
             this.txtMonto.Location = new System.Drawing.Point(110, 194);
             this.txtMonto.Name = "txtMonto";
             this.txtMonto.Size = new System.Drawing.Size(113, 20);
@@ -73,6 +76,7 @@
             // 
             // btnGuardar
             // 
+            this.btnGuardar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnGuardar.Location = new System.Drawing.Point(240, 287);
             this.btnGuardar.Name = "btnGuardar";
             this.btnGuardar.Size = new System.Drawing.Size(75, 23);
@@ -83,6 +87,8 @@
             // 
             // grpBoxCajaD
             // 
+            this.grpBoxCajaD.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.grpBoxCajaD.Controls.Add(this.lblUsuario);
             this.grpBoxCajaD.Controls.Add(this.lblFecha);
             this.grpBoxCajaD.Location = new System.Drawing.Point(12, 12);
@@ -94,6 +100,7 @@
             // 
             // lblFecha
             // 
+            this.lblFecha.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)));
             this.lblFecha.AutoSize = true;
             this.lblFecha.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblFecha.Location = new System.Drawing.Point(23, 23);
@@ -104,6 +111,7 @@
             // 
             // lblUsuario
             // 
+            this.lblUsuario.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)));
             this.lblUsuario.AutoSize = true;
             this.lblUsuario.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblUsuario.Location = new System.Drawing.Point(23, 46);
@@ -114,6 +122,7 @@
             // 
             // lblSaldoAyer
             // 
+            this.lblSaldoAyer.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)));
             this.lblSaldoAyer.AutoSize = true;
             this.lblSaldoAyer.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblSaldoAyer.Location = new System.Drawing.Point(23, 23);
@@ -124,6 +133,8 @@
             // 
             // grpBoxCajaAyer
             // 
+            this.grpBoxCajaAyer.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.grpBoxCajaAyer.Controls.Add(this.label3);
             this.grpBoxCajaAyer.Controls.Add(this.lblSaldoAyer);
             this.grpBoxCajaAyer.Location = new System.Drawing.Point(12, 96);
@@ -135,6 +146,7 @@
             // 
             // label3
             // 
+            this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)));
             this.label3.AutoSize = true;
             this.label3.Location = new System.Drawing.Point(23, 25);
             this.label3.Name = "label3";
@@ -143,6 +155,7 @@
             // 
             // label2
             // 
+            this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label2.Location = new System.Drawing.Point(9, 292);
@@ -155,7 +168,13 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            // Mantener padding interior para separación visual
             this.ClientSize = new System.Drawing.Size(327, 322);
+            this.Padding = new System.Windows.Forms.Padding(6);
+            // Permitir redimensionar pero con límites (cambio mínimo y seguro)
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Sizable;
+            this.MinimumSize = new System.Drawing.Size(327, 322);
+            this.MaximumSize = new System.Drawing.Size(900, 700);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.grpBoxCajaAyer);
             this.Controls.Add(this.grpBoxCajaD);
@@ -165,7 +184,7 @@
             this.Controls.Add(this.btnObtenerMonto);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "frmAbrirCajaDiaria";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Abrir caja diaria";
             this.Load += new System.EventHandler(this.frmAbrirCajaDiaria_Load);
             this.grpBoxCajaD.ResumeLayout(false);
@@ -184,8 +203,8 @@
         private System.Windows.Forms.TextBox txtMonto;
         private System.Windows.Forms.Button btnGuardar;
         private System.Windows.Forms.GroupBox grpBoxCajaD;
-        private System.Windows.Forms.Label lblUsuario;
         private System.Windows.Forms.Label lblFecha;
+        private System.Windows.Forms.Label lblUsuario;
         private System.Windows.Forms.Label lblSaldoAyer;
         private System.Windows.Forms.GroupBox grpBoxCajaAyer;
         private System.Windows.Forms.Label label3;

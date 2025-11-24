@@ -13,6 +13,7 @@ namespace Entidades
         public int IdCajaDiaria { get; set; }
         public DateTime Fecha { get; set; }
         public string TipoMovimiento { get; set; }  // INGRESO / EGRESO
+        public int SignoMovimiento { get; set; }
         public string MetodoPago { get; set; }      // EFECTIVO / DEBITO / CREDITO / TRANSFERENCIA / CHEQUE
         public string Concepto { get; set; }
         public decimal Monto { get; set; }
@@ -23,6 +24,8 @@ namespace Entidades
         public bool Activo { get; set; }
         public DateTime? FechaBaja { get; set; }
         public DateTime? FechaModificacion { get; set; }
+        public bool esAperturaCaja { get; set; }
+
 
         // Propiedad adicional para mostrar en grilla (se llena con join)
         public string EntidadRelacionada { get; set; }

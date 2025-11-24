@@ -134,7 +134,7 @@ namespace Negocios
         // ELIMINAR MOVIMIENTO (con actualización de saldo)
         // =====================================================
 
-        public async Task<bool> EliminarMovimientoAsync(string codMovimiento)
+        public async Task<bool> EliminarMovimientoAsync(string codMovimiento, string codOrdenTrabajo)
         {
             // ✅ VALIDACIONES
 
@@ -157,7 +157,7 @@ namespace Negocios
             }
 
             // ✅ EJECUTAR
-            bool exito = await daLibroDiario.EliminarAsync(codMovimiento);
+            bool exito = await daLibroDiario.EliminarAsync(codMovimiento, codOrdenTrabajo);
 
             // ✅ ACTUALIZAR SALDO SI ERA EFECTIVO
             if (movimiento.MetodoPago == "EFECTIVO")

@@ -132,7 +132,7 @@ namespace Datos
                 string query = @"
                     SELECT 
                         Id, CodMovimiento, IdCajaDiaria, Fecha, TipoMovimiento, MetodoPago,
-                        Concepto, Monto, CodCliente, CodProveedor, CodOrdenTrabajo,
+                        Concepto, Monto, CodCliente, CodProveedor, CodOrdenTrabajo, CodVehiculo,
                         Activo, FechaBaja, FechaModificacion
                     FROM LibroDiario
                     WHERE CodMovimiento = @CodMov";
@@ -161,9 +161,10 @@ namespace Datos
                                 CodCliente = reader.IsDBNull(8) ? null : reader.GetString(8),
                                 CodProveedor = reader.IsDBNull(9) ? null : reader.GetString(9),
                                 CodOrdenTrabajo = reader.IsDBNull(10) ? null : reader.GetString(10),
-                                Activo = reader.GetBoolean(11),
-                                FechaBaja = reader.IsDBNull(12) ? null : (DateTime?)reader.GetDateTime(12),
-                                FechaModificacion = reader.IsDBNull(13) ? null : (DateTime?)reader.GetDateTime(13)
+                                CodVehiculo = reader.IsDBNull(11)? null : reader.GetString(11),
+                                Activo = reader.GetBoolean(12),
+                                FechaBaja = reader.IsDBNull(13) ? null : (DateTime?)reader.GetDateTime(13),
+                                FechaModificacion = reader.IsDBNull(14) ? null : (DateTime?)reader.GetDateTime(14)
                             };
                         }
                     }
@@ -196,11 +197,11 @@ namespace Datos
 
                 string query = @"
                     INSERT INTO LibroDiario 
-                    (CodMovimiento, IdCajaDiaria, Fecha, TipoMovimiento, MetodoPago, 
-                     Concepto, Monto, CodCliente, CodProveedor, CodOrdenTrabajo, Activo)
+                    (CodMovimiento, IdCajaDiaria, Fecha, TipoMovimiento, Signo, MetodoPago, 
+                     Concepto, Monto, CodCliente, CodProveedor, CodOrdenTrabajo, CodVehiculo, Activo)
                     VALUES 
-                    (@CodMov, @IdCaja, GETDATE(), @Tipo, @Metodo, 
-                     @Concepto, @Monto, @CodCliente, @CodProveedor, @CodOrden, 1)";
+                    (@CodMov, @IdCaja, GETDATE(), @Tipo, @Signo, @Metodo, 
+                     @Concepto, @Monto, @CodCliente, @CodProveedor, @CodOrden, @CodVehiculo, 1)";
 
                 using (SqlConnection conn = new SqlConnection(connectionString))
                 {
@@ -214,6 +215,9 @@ namespace Datos
                     cmd.Parameters.AddWithValue("@CodCliente", (object)movimiento.CodCliente ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@CodProveedor", (object)movimiento.CodProveedor ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@CodOrden", (object)movimiento.CodOrdenTrabajo ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@CodVehiculo", (object)movimiento.CodVehiculo ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Signo", movimiento.SignoMovimiento);
+
 
                     await conn.OpenAsync();
                     await cmd.ExecuteNonQueryAsync();
@@ -245,39 +249,91 @@ namespace Datos
 
         public async Task<bool> ActualizarAsync(LibroDiario movimiento)
         {
+            if (movimiento == null) throw new ArgumentNullException(nameof(movimiento));
+            if (string.IsNullOrWhiteSpace(movimiento.CodMovimiento)) throw new ArgumentNullException(nameof(movimiento.CodMovimiento));
+
+            string sqlUpdateLibro = @"
+                                     UPDATE LibroDiario
+                                     SET Concepto = @Concepto,
+                                         Monto = @Monto,
+                                         CodCliente = @CodCliente,
+                                         CodProveedor = @CodProveedor,               
+                                         CodVehiculo = @CodVehiculo,
+                                         MetodoPago = @Metodo,
+                                         FechaModificacion = GETDATE(),
+                                         Signo = @Signo
+                                     WHERE CodMovimiento = @CodMov
+                                       AND Activo = 1;";
+
+            string sqlUpdateCaja = @"
+                                    UPDATE CajaDiaria
+                                    SET SaldoInicial = @Monto
+                                    WHERE Id = @IdCaja;";
+
             try
             {
-                string query = @"
-                    UPDATE LibroDiario
-                    SET Concepto = @Concepto,
-                        Monto = @Monto,
-                        MetodoPago = @Metodo,
-                        FechaModificacion = GETDATE()
-                    WHERE CodMovimiento = @CodMov
-                      AND Activo = 1";
-
                 using (SqlConnection conn = new SqlConnection(connectionString))
                 {
-                    SqlCommand cmd = new SqlCommand(query, conn);
-                    cmd.Parameters.AddWithValue("@CodMov", movimiento.CodMovimiento);
-                    cmd.Parameters.AddWithValue("@Concepto", movimiento.Concepto);
-                    cmd.Parameters.AddWithValue("@Monto", movimiento.Monto);
-                    cmd.Parameters.AddWithValue("@Metodo", movimiento.MetodoPago);
-
                     await conn.OpenAsync();
-                    int filasAfectadas = await cmd.ExecuteNonQueryAsync();
 
-                    if (filasAfectadas > 0)
+                    using (SqlTransaction tran = conn.BeginTransaction())
                     {
-                        LogHelper.GuardarInfo(
-                            $"Movimiento actualizado: {movimiento.CodMovimiento}",
-                            "DaLibroDiario",
-                            "ActualizarAsync"
-                        );
-                    }
+                        try
+                        {
+                            int filasAfectadasLibro;
+                            using (SqlCommand cmd = new SqlCommand(sqlUpdateLibro, conn, tran))
+                            {
+                                cmd.Parameters.AddWithValue("@CodMov", movimiento.CodMovimiento);
+                                cmd.Parameters.AddWithValue("@Concepto", (object)movimiento.Concepto ?? DBNull.Value);
+                                cmd.Parameters.AddWithValue("@Monto", movimiento.Monto);
+                                cmd.Parameters.AddWithValue("@Metodo", (object)movimiento.MetodoPago ?? DBNull.Value);
+                                cmd.Parameters.AddWithValue("@CodCliente", (object)movimiento.CodCliente ?? DBNull.Value);
+                                cmd.Parameters.AddWithValue("@CodProveedor", (object)movimiento.CodProveedor ?? DBNull.Value);
+                                cmd.Parameters.AddWithValue("@CodVehiculo", (object)movimiento.CodVehiculo ?? DBNull.Value);
+                                cmd.Parameters.AddWithValue("@Signo", (object)movimiento.SignoMovimiento ?? DBNull.Value);
 
-                    return filasAfectadas > 0;
-                }
+                                filasAfectadasLibro = await cmd.ExecuteNonQueryAsync();
+                            }
+
+                            // Si no se afectó el movimiento principal, revertimos (no hubo cambios) y devolvemos false.
+                            if (filasAfectadasLibro <= 0)
+                            {
+                                try { tran.Rollback(); } catch { /* ignorar */ }
+                                LogHelper.GuardarInfo($"Movimiento no encontrado o ya inactivo: {movimiento.CodMovimiento}", "DaLibroDiario", "ActualizarAsync");
+                                return false;
+                            }
+
+                            // Si la entidad trae IdCajaDiaria, intentamos actualizar la caja en la misma transacción.
+                            // No consideramos que 0 filas en la caja sea error; solo se hace rollback si ocurre una excepción.
+                            if (movimiento.esAperturaCaja)
+                            {
+                                using (SqlCommand cmd2 = new SqlCommand(sqlUpdateCaja, conn, tran))
+                                {
+                                    cmd2.Parameters.AddWithValue("@Monto", movimiento.Monto);
+                                    cmd2.Parameters.AddWithValue("@IdCaja", movimiento.IdCajaDiaria);
+                                    await cmd2.ExecuteNonQueryAsync();
+                                }
+                            }
+
+                            tran.Commit();
+
+                            LogHelper.GuardarInfo(
+                                $"Movimiento actualizado: {movimiento.CodMovimiento}" + (movimiento.IdCajaDiaria > 0 ? $" - Caja actualizada: {movimiento.IdCajaDiaria}" : ""),
+                                "DaLibroDiario",
+                                "ActualizarAsync"
+                            );
+
+                            return true;
+                        }
+                        catch (Exception ex)
+                        {
+                            tran.Rollback(); 
+
+                            LogHelper.GuardarError(ex, "DaLibroDiario", "ActualizarAsync", $"CodMov: {movimiento.CodMovimiento}, IdCaja: {movimiento.IdCajaDiaria}");
+                            throw new Exception($"Error al actualizar movimiento y/o caja: {ex.Message}", ex);
+                        }
+                    } // using tx
+                } // using conn
             }
             catch (SqlException ex)
             {
@@ -295,40 +351,83 @@ namespace Datos
         // ELIMINAR MOVIMIENTO (borrado lógico)
         // =====================================================
 
-        public async Task<bool> EliminarAsync(string codMovimiento)
+        public async Task<bool> EliminarAsync(string codMovimiento, string codOrdenTrabajo)
         {
+            if (string.IsNullOrWhiteSpace(codMovimiento)) throw new ArgumentNullException(nameof(codMovimiento));
+
+            string sqlUpdateLibro = @"
+                                     UPDATE LibroDiario
+                                     SET Activo = 0, 
+                                         FechaBaja = GETDATE()
+                                     WHERE CodMovimiento = @CodMov
+                                       AND Activo = 1;";
+
+            string sqlUpdateOrden = @"
+                                    UPDATE OrdenTrabajo
+                                    SET activo = 0
+                                    WHERE CodPresupuesto = @CodOrden
+                                      AND activo = 1;";
+
             try
             {
-                string query = @"
-                    UPDATE LibroDiario
-                    SET Activo = 0, 
-                        FechaBaja = GETDATE()
-                    WHERE CodMovimiento = @CodMov 
-                      AND Activo = 1";
-
                 using (SqlConnection conn = new SqlConnection(connectionString))
                 {
-                    SqlCommand cmd = new SqlCommand(query, conn);
-                    cmd.Parameters.AddWithValue("@CodMov", codMovimiento);
-
                     await conn.OpenAsync();
-                    int filasAfectadas = await cmd.ExecuteNonQueryAsync();
 
-                    if (filasAfectadas > 0)
+                    using (SqlTransaction tran = conn.BeginTransaction())
                     {
-                        LogHelper.GuardarInfo(
-                            $"Movimiento eliminado: {codMovimiento}",
-                            "DaLibroDiario",
-                            "EliminarAsync"
-                        );
-                    }
+                        try
+                        {
+                            int filasAfectadasLibro;
+                            using (SqlCommand cmd = new SqlCommand(sqlUpdateLibro, conn, tran))
+                            {
+                                cmd.Parameters.AddWithValue("@CodMov", codMovimiento);
+                                filasAfectadasLibro = await cmd.ExecuteNonQueryAsync();
+                            }
 
-                    return filasAfectadas > 0;
-                }
+                            // Si no se afectó el movimiento principal, no hacemos nada y devolvemos false
+                            if (filasAfectadasLibro <= 0)
+                            {
+                                LogHelper.GuardarInfo($"Movimiento no encontrado o ya inactivo: {codMovimiento}", "DaLibroDiario", "EliminarAsync");
+                                // No hay cambios realizados, no commit necesario
+                                return false;
+                            }
+
+                            // Si se pasó un código de orden, intentamos desactivarla (no consideramos 0 filas como excepción aquí)
+                            if (!string.IsNullOrWhiteSpace(codOrdenTrabajo))
+                            {
+                                using (SqlCommand cmdOrd = new SqlCommand(sqlUpdateOrden, conn, tran))
+                                {
+                                    cmdOrd.Parameters.AddWithValue("@CodOrden", codOrdenTrabajo);
+                                    await cmdOrd.ExecuteNonQueryAsync();
+                                }
+                            }
+
+                            // Commit si llegamos sin excepciones
+                            tran.Commit();
+
+                            LogHelper.GuardarInfo(
+                                $"Movimiento eliminado: {codMovimiento}" + (string.IsNullOrWhiteSpace(codOrdenTrabajo) ? "" : $" - Intento desactivar orden: {codOrdenTrabajo}"),
+                                "DaLibroDiario",
+                                "EliminarAsync"
+                            );
+
+                            return true;
+                        }
+                        catch (Exception ex)
+                        {
+                            // Rollback sólo si hubo excepción
+                            tran.Rollback(); 
+
+                            LogHelper.GuardarError(ex, "DaLibroDiario", "EliminarAsync", $"CodMov: {codMovimiento}, CodOrden: {codOrdenTrabajo}");
+                            throw new Exception($"Error al eliminar movimiento y/o orden: {ex.Message}", ex);
+                        }
+                    } // using tx
+                } // using conn
             }
             catch (SqlException ex)
             {
-                LogHelper.GuardarError(ex, "DaLibroDiario", "EliminarAsync", $"CodMov: {codMovimiento}");
+                LogHelper.GuardarError(ex, "DaLibroDiario", "EliminarAsync", $"CodMov: {codMovimiento}, CodOrden: {codOrdenTrabajo}");
                 throw new Exception($"Error al eliminar movimiento: {ex.Message}", ex);
             }
             catch (Exception ex)
@@ -337,6 +436,7 @@ namespace Datos
                 throw;
             }
         }
+
 
         // =====================================================
         // OBTENER MÉTODO DE PAGO DE UN MOVIMIENTO

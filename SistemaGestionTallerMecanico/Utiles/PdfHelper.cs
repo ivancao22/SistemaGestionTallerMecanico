@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -194,6 +195,168 @@ namespace Utiles
 
             return rutaSalida;
         }
+
+        /// <summary>
+        /// Genera un PDF con la cuenta corriente de una persona/entidad.
+        /// </summary>
+        /// <param name="nombre">Nombre de la persona o entidad</param>
+        /// <param name="movimientos">Lista de movimientos (debe contener Fecha, TipoMovimiento, CodMovimiento, Monto, Concepto, Signo)</param>
+        /// <param name="rutaDestino">Ruta completa del archivo PDF a generar</param>
+        public static void GenerarPdfCuentaCorriente(string nombre, List<LibroDiario> movimientos, string rutaDestino)
+        {
+            if (string.IsNullOrWhiteSpace(rutaDestino)) throw new ArgumentNullException(nameof(rutaDestino));
+            if (movimientos == null) movimientos = new List<LibroDiario>();
+
+            // Crear carpeta si no existe
+            var directory = Path.GetDirectoryName(rutaDestino);
+            if (!string.IsNullOrWhiteSpace(directory) && !Directory.Exists(directory))
+                Directory.CreateDirectory(directory);
+
+            // Document setup
+            var doc = new Document(PageSize.A4.Rotate(), 36, 36, 36, 36);
+            using (var fs = new FileStream(rutaDestino, FileMode.Create, FileAccess.Write))
+            {
+                var writer = PdfWriter.GetInstance(doc, fs);
+                doc.Open();
+
+                // Fuentes
+                var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 14);
+                var headerFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10);
+                var normalFont = FontFactory.GetFont(FontFactory.HELVETICA, 9);
+                var boldFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 9);
+
+                // Cabecera
+                var title = new Paragraph($"Cuenta Corriente - {nombre}", titleFont) { Alignment = Element.ALIGN_LEFT };
+                doc.Add(title);
+                doc.Add(new Paragraph($"Generado: {DateTime.Now:dd/MM/yyyy HH:mm}", normalFont));
+                doc.Add(Chunk.NEWLINE);
+
+                // Tabla con columnas: Fecha, Tipo, Importe, Descripción
+                var table = new PdfPTable(new float[] { 1.6f, 1.2f, 1f, 3f })
+                {
+                    WidthPercentage = 100
+                };
+
+                // Headers
+                Action<string> addHeader = text =>
+                {
+                    var cell = new PdfPCell(new Phrase(text, headerFont))
+                    {
+                        BackgroundColor = BaseColor.LIGHT_GRAY,
+                        Padding = 6,
+                        HorizontalAlignment = Element.ALIGN_CENTER
+                    };
+                    table.AddCell(cell);
+                };
+
+                addHeader("Fecha");
+                addHeader("Tipo movimiento");
+                //addHeader("Código");
+                addHeader("Importe");
+                addHeader("Descripción");
+
+                // Contenido filas
+                decimal balance = 0m;
+                foreach (var m in movimientos.OrderBy(x => x.Fecha))
+                {
+                    // Fecha
+                    var fechaCell = new PdfPCell(new Phrase(m.Fecha.ToString("dd/MM/yyyy HH:mm"), normalFont))
+                    {
+                        Padding = 5
+                    };
+                    table.AddCell(fechaCell);
+
+                    // === TIPO VISUAL SEGÚN CLIENTE/PROVEEDOR ===
+                    string displayTipo;
+
+                    if (m.CodCliente != null && m.CodCliente != "")
+                    {
+                        // Cliente:
+                        // INGRESO -> PAGA
+                        // EGRESO  -> DEBE
+                        displayTipo = string.Equals(m.TipoMovimiento, "INGRESO", StringComparison.OrdinalIgnoreCase)
+                            ? "PAGA"
+                            : "DEBE";
+                    }
+                    else if (m.CodProveedor != null && m.CodProveedor != "")
+                    {
+                        // Proveedor:
+                        // EGRESO -> SE LE PAGA
+                        // INGRESO -> SE LE DEBE
+                        displayTipo = string.Equals(m.TipoMovimiento, "EGRESO", StringComparison.OrdinalIgnoreCase)
+                            ? "SE LE PAGA"
+                            : "SE LE DEBE";
+                    }
+                    else
+                    {
+                        displayTipo = m.TipoMovimiento?.ToUpperInvariant() ?? "";
+                    }
+
+                    var tipoCell = new PdfPCell(new Phrase(displayTipo, normalFont))
+                    {
+                        Padding = 5,
+                        HorizontalAlignment = Element.ALIGN_CENTER
+                    };
+                    table.AddCell(tipoCell);
+
+                    // Código
+                    //var codCell = new PdfPCell(new Phrase(m.CodMovimiento ?? "", normalFont))
+                    //{
+                    //    Padding = 5,
+                    //    HorizontalAlignment = Element.ALIGN_CENTER
+                    //};
+                    //table.AddCell(codCell);
+
+                    // Importe (sin aplicar signo todavía)
+                    var importeStr = m.Monto.ToString("C2", CultureInfo.CurrentCulture);
+                    var importeCell = new PdfPCell(new Phrase(importeStr, normalFont))
+                    {
+                        Padding = 5,
+                        HorizontalAlignment = Element.ALIGN_RIGHT
+                    };
+                    table.AddCell(importeCell);
+
+                    // Descripción
+                    var descCell = new PdfPCell(new Phrase(m.Concepto ?? "", normalFont))
+                    {
+                        Padding = 5
+                    };
+                    table.AddCell(descCell);
+
+                    // === BALANCE ACUMULADO (misma lógica de la grilla) ===
+                    int signo = m.SignoMovimiento != 0
+                        ? m.SignoMovimiento
+                        : (string.Equals(m.TipoMovimiento, "INGRESO", StringComparison.OrdinalIgnoreCase) ? 1 : -1);
+
+                    //Los movimientos de presupuesto no afectan el balance
+                    if (!m.Concepto.ToLower().Contains("presupuesto"))
+                    {
+                        balance += signo * m.Monto;
+                    }
+
+                }
+
+                doc.Add(table);
+                doc.Add(Chunk.NEWLINE);
+
+                // Totales / Balance
+                var totTable = new PdfPTable(new float[] { 1f, 1f }) { WidthPercentage = 40, HorizontalAlignment = Element.ALIGN_RIGHT };
+
+                totTable.AddCell(new PdfPCell(new Phrase("Total movimientos:", boldFont)) { Border = Rectangle.NO_BORDER, Padding = 4 });
+                totTable.AddCell(new PdfPCell(new Phrase($"{movimientos.Count}", normalFont)) { Border = Rectangle.NO_BORDER, HorizontalAlignment = Element.ALIGN_RIGHT, Padding = 4 });
+
+                totTable.AddCell(new PdfPCell(new Phrase("Balance:", boldFont)) { Border = Rectangle.NO_BORDER, Padding = 4 });
+                var balanceStr = (balance >= 0 ? "+ " : "- ") + Math.Abs(balance).ToString("C2", CultureInfo.CurrentCulture);
+                var balanceCell = new PdfPCell(new Phrase(balanceStr, boldFont)) { Border = Rectangle.NO_BORDER, HorizontalAlignment = Element.ALIGN_RIGHT, Padding = 4 };
+                totTable.AddCell(balanceCell);
+
+                doc.Add(totTable);
+
+                doc.Close();
+                writer.Close();
+            }
+        }
+
 
         public static void AbrirPdf(string ruta)
         {

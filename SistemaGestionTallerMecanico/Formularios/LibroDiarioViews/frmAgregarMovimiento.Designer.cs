@@ -91,6 +91,7 @@
             // 
             // label1
             // 
+            this.label1.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label1.Location = new System.Drawing.Point(144, 86);
@@ -106,11 +107,14 @@
             this.imgProveedor.Location = new System.Drawing.Point(163, 21);
             this.imgProveedor.Name = "imgProveedor";
             this.imgProveedor.Size = new System.Drawing.Size(51, 53);
+            this.imgProveedor.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
             this.imgProveedor.TabIndex = 20;
             this.imgProveedor.TabStop = false;
+            this.imgProveedor.Anchor = System.Windows.Forms.AnchorStyles.Top;
             // 
             // btnBuscarPersona
             // 
+            this.btnBuscarPersona.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnBuscarPersona.Image = ((System.Drawing.Image)(resources.GetObject("btnBuscarPersona.Image")));
             this.btnBuscarPersona.Location = new System.Drawing.Point(315, 147);
             this.btnBuscarPersona.Name = "btnBuscarPersona";
@@ -121,6 +125,7 @@
             // 
             // btnGuardar
             // 
+            this.btnGuardar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnGuardar.Location = new System.Drawing.Point(284, 470);
             this.btnGuardar.Name = "btnGuardar";
             this.btnGuardar.Size = new System.Drawing.Size(75, 23);
@@ -131,6 +136,8 @@
             // 
             // txtMonto
             // 
+            this.txtMonto.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.txtMonto.Location = new System.Drawing.Point(120, 329);
             this.txtMonto.Name = "txtMonto";
             this.txtMonto.Size = new System.Drawing.Size(144, 20);
@@ -138,6 +145,8 @@
             // 
             // txtVehiculo
             // 
+            this.txtVehiculo.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.txtVehiculo.Location = new System.Drawing.Point(121, 199);
             this.txtVehiculo.Name = "txtVehiculo";
             this.txtVehiculo.Size = new System.Drawing.Size(183, 20);
@@ -145,6 +154,8 @@
             // 
             // txtPersona
             // 
+            this.txtPersona.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.txtPersona.Location = new System.Drawing.Point(121, 151);
             this.txtPersona.Name = "txtPersona";
             this.txtPersona.Size = new System.Drawing.Size(183, 20);
@@ -162,7 +173,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(19, 244);
+            this.label3.Location = new System.Drawing.Point(19, 289);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(98, 13);
             this.label3.TabIndex = 23;
@@ -188,6 +199,7 @@
             // 
             // btnBuscarVehiculo
             // 
+            this.btnBuscarVehiculo.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnBuscarVehiculo.Image = ((System.Drawing.Image)(resources.GetObject("btnBuscarVehiculo.Image")));
             this.btnBuscarVehiculo.Location = new System.Drawing.Point(315, 194);
             this.btnBuscarVehiculo.Name = "btnBuscarVehiculo";
@@ -198,24 +210,29 @@
             // 
             // cmbMetodoPago
             // 
+            this.cmbMetodoPago.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.cmbMetodoPago.FormattingEnabled = true;
-            this.cmbMetodoPago.Location = new System.Drawing.Point(121, 241);
+            this.cmbMetodoPago.Location = new System.Drawing.Point(121, 286);
             this.cmbMetodoPago.Name = "cmbMetodoPago";
             this.cmbMetodoPago.Size = new System.Drawing.Size(143, 21);
             this.cmbMetodoPago.TabIndex = 33;
             // 
             // cmbTipoMov
             // 
+            this.cmbTipoMov.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.cmbTipoMov.FormattingEnabled = true;
-            this.cmbTipoMov.Location = new System.Drawing.Point(121, 286);
+            this.cmbTipoMov.Location = new System.Drawing.Point(122, 243);
             this.cmbTipoMov.Name = "cmbTipoMov";
             this.cmbTipoMov.Size = new System.Drawing.Size(143, 21);
             this.cmbTipoMov.TabIndex = 36;
+            this.cmbTipoMov.SelectedIndexChanged += new System.EventHandler(this.cmbTipoMov_SelectedIndexChanged);
             // 
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(19, 289);
+            this.label6.Location = new System.Drawing.Point(20, 246);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(97, 13);
             this.label6.TabIndex = 35;
@@ -223,6 +240,7 @@
             // 
             // label7
             // 
+            this.label7.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.label7.AutoSize = true;
             this.label7.Location = new System.Drawing.Point(160, 368);
             this.label7.Name = "label7";
@@ -232,6 +250,9 @@
             // 
             // txtComentario
             // 
+            this.txtComentario.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.txtComentario.Location = new System.Drawing.Point(30, 384);
             this.txtComentario.Multiline = true;
             this.txtComentario.Name = "txtComentario";
@@ -240,19 +261,24 @@
             // 
             // label8
             // 
+            this.label8.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label8.AutoSize = true;
-            this.label8.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label8.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F);
             this.label8.Location = new System.Drawing.Point(12, 473);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(146, 15);
             this.label8.TabIndex = 39;
-            this.label8.Text = "ℹ️ * Campos obligatorios";
+            // Replaced emoji with plain text to ensure Win7 compatibility
+            this.label8.Text = "* Campos obligatorios";
             // 
             // frmAgregarMovimiento
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            // padding interior para separación visual y comportamiento responsivo
             this.ClientSize = new System.Drawing.Size(371, 502);
+            this.Padding = new System.Windows.Forms.Padding(6);
+            this.MinimumSize = new System.Drawing.Size(380, 520);
             this.Controls.Add(this.label8);
             this.Controls.Add(this.txtComentario);
             this.Controls.Add(this.label7);

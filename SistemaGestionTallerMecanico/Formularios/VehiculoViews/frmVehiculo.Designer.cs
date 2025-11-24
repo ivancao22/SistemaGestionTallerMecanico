@@ -43,12 +43,17 @@
             this.optPatente = new System.Windows.Forms.RadioButton();
             this.optModelo = new System.Windows.Forms.RadioButton();
             this.optCliente = new System.Windows.Forms.RadioButton();
+            this.panelTop = new System.Windows.Forms.Panel();
+            this.panelDgv = new System.Windows.Forms.Panel();
             ((System.ComponentModel.ISupportInitialize)(this.dgvVehiculos)).BeginInit();
+            this.panelTop.SuspendLayout();
+            this.panelDgv.SuspendLayout();
             this.SuspendLayout();
             // 
             // dgvVehiculos
             // 
             this.dgvVehiculos.AllowUserToAddRows = false;
+            this.dgvVehiculos.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dgvVehiculos.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvVehiculos.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.ColCodVehiculo,
@@ -58,11 +63,12 @@
             this.ColKm,
             this.ColEditar,
             this.ColBorrar});
+            this.dgvVehiculos.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dgvVehiculos.GridColor = System.Drawing.SystemColors.Control;
-            this.dgvVehiculos.Location = new System.Drawing.Point(7, 56);
+            this.dgvVehiculos.Location = new System.Drawing.Point(4, 4);
             this.dgvVehiculos.Name = "dgvVehiculos";
             this.dgvVehiculos.RowHeadersVisible = false;
-            this.dgvVehiculos.Size = new System.Drawing.Size(668, 367);
+            this.dgvVehiculos.Size = new System.Drawing.Size(665, 361);
             this.dgvVehiculos.TabIndex = 25;
             this.dgvVehiculos.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvVehiculos_CellContentClick);
             // 
@@ -82,7 +88,6 @@
             // 
             this.ColModelo.HeaderText = "Modelo";
             this.ColModelo.Name = "ColModelo";
-            this.ColModelo.Width = 220;
             // 
             // ColPatente
             // 
@@ -96,6 +101,7 @@
             // 
             // ColEditar
             // 
+            this.ColEditar.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
             this.ColEditar.HeaderText = "";
             this.ColEditar.Image = ((System.Drawing.Image)(resources.GetObject("ColEditar.Image")));
             this.ColEditar.Name = "ColEditar";
@@ -103,6 +109,7 @@
             // 
             // ColBorrar
             // 
+            this.ColBorrar.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
             this.ColBorrar.HeaderText = "";
             this.ColBorrar.Image = ((System.Drawing.Image)(resources.GetObject("ColBorrar.Image")));
             this.ColBorrar.Name = "ColBorrar";
@@ -110,9 +117,11 @@
             // 
             // btnAgregarVehiculo
             // 
+            this.btnAgregarVehiculo.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnAgregarVehiculo.Image = ((System.Drawing.Image)(resources.GetObject("btnAgregarVehiculo.Image")));
             this.btnAgregarVehiculo.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnAgregarVehiculo.Location = new System.Drawing.Point(549, 20);
+            this.btnAgregarVehiculo.Location = new System.Drawing.Point(543, 20);
+            this.btnAgregarVehiculo.MaximumSize = new System.Drawing.Size(130, 30);
             this.btnAgregarVehiculo.Name = "btnAgregarVehiculo";
             this.btnAgregarVehiculo.Size = new System.Drawing.Size(126, 30);
             this.btnAgregarVehiculo.TabIndex = 24;
@@ -123,9 +132,11 @@
             // 
             // txtFiltro
             // 
+            this.txtFiltro.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.txtFiltro.Location = new System.Drawing.Point(53, 27);
             this.txtFiltro.Name = "txtFiltro";
-            this.txtFiltro.Size = new System.Drawing.Size(146, 20);
+            this.txtFiltro.Size = new System.Drawing.Size(220, 20);
             this.txtFiltro.TabIndex = 23;
             this.txtFiltro.TextChanged += new System.EventHandler(this.txtFiltro_TextChanged);
             // 
@@ -141,7 +152,7 @@
             // optPatente
             // 
             this.optPatente.AutoSize = true;
-            this.optPatente.Location = new System.Drawing.Point(11, 5);
+            this.optPatente.Location = new System.Drawing.Point(11, 6);
             this.optPatente.Name = "optPatente";
             this.optPatente.Size = new System.Drawing.Size(62, 17);
             this.optPatente.TabIndex = 26;
@@ -153,7 +164,7 @@
             // optModelo
             // 
             this.optModelo.AutoSize = true;
-            this.optModelo.Location = new System.Drawing.Point(79, 5);
+            this.optModelo.Location = new System.Drawing.Point(79, 6);
             this.optModelo.Name = "optModelo";
             this.optModelo.Size = new System.Drawing.Size(60, 17);
             this.optModelo.TabIndex = 27;
@@ -165,7 +176,7 @@
             // optCliente
             // 
             this.optCliente.AutoSize = true;
-            this.optCliente.Location = new System.Drawing.Point(147, 5);
+            this.optCliente.Location = new System.Drawing.Point(147, 6);
             this.optCliente.Name = "optCliente";
             this.optCliente.Size = new System.Drawing.Size(57, 17);
             this.optCliente.TabIndex = 28;
@@ -174,26 +185,48 @@
             this.optCliente.UseVisualStyleBackColor = true;
             this.optCliente.CheckedChanged += new System.EventHandler(this.optCliente_CheckedChanged);
             // 
+            // panelTop
+            // 
+            this.panelTop.Controls.Add(this.optPatente);
+            this.panelTop.Controls.Add(this.optModelo);
+            this.panelTop.Controls.Add(this.optCliente);
+            this.panelTop.Controls.Add(this.label1);
+            this.panelTop.Controls.Add(this.txtFiltro);
+            this.panelTop.Controls.Add(this.btnAgregarVehiculo);
+            this.panelTop.Dock = System.Windows.Forms.DockStyle.Top;
+            this.panelTop.Location = new System.Drawing.Point(4, 4);
+            this.panelTop.Name = "panelTop";
+            this.panelTop.Size = new System.Drawing.Size(673, 56);
+            this.panelTop.TabIndex = 29;
+            // 
+            // panelDgv
+            // 
+            this.panelDgv.Controls.Add(this.dgvVehiculos);
+            this.panelDgv.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panelDgv.Location = new System.Drawing.Point(4, 60);
+            this.panelDgv.Name = "panelDgv";
+            this.panelDgv.Padding = new System.Windows.Forms.Padding(4);
+            this.panelDgv.Size = new System.Drawing.Size(673, 369);
+            this.panelDgv.TabIndex = 30;
+            // 
             // frmVehiculo
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(681, 429);
-            this.Controls.Add(this.optCliente);
-            this.Controls.Add(this.optModelo);
-            this.Controls.Add(this.optPatente);
-            this.Controls.Add(this.dgvVehiculos);
-            this.Controls.Add(this.btnAgregarVehiculo);
-            this.Controls.Add(this.txtFiltro);
-            this.Controls.Add(this.label1);
+            this.ClientSize = new System.Drawing.Size(681, 433);
+            this.Controls.Add(this.panelDgv);
+            this.Controls.Add(this.panelTop);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "frmVehiculo";
+            this.Padding = new System.Windows.Forms.Padding(4);
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Vehiculos";
             this.Load += new System.EventHandler(this.frmVehiculo_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dgvVehiculos)).EndInit();
+            this.panelTop.ResumeLayout(false);
+            this.panelTop.PerformLayout();
+            this.panelDgv.ResumeLayout(false);
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
@@ -213,5 +246,7 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn ColKm;
         private System.Windows.Forms.DataGridViewImageColumn ColEditar;
         private System.Windows.Forms.DataGridViewImageColumn ColBorrar;
+        private System.Windows.Forms.Panel panelTop;
+        private System.Windows.Forms.Panel panelDgv;
     }
 }

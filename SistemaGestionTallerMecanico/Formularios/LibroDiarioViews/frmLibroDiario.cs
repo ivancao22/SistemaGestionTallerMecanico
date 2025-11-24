@@ -15,6 +15,7 @@ using ClosedXML;
 using ClosedXML.Excel;
 using Formularios.LibroDiarioViews.OrdenTrabajoViews;
 using DocumentFormat.OpenXml.Spreadsheet;
+using Utiles;
 
 namespace Formularios.LibroDiarioViews
 {
@@ -115,7 +116,7 @@ namespace Formularios.LibroDiarioViews
                     row.Cells["ColNombre"].Value = mov.EntidadRelacionada ?? "Sin asignar";
 
                     // Tipo usuario (Cliente/Proveedor)
-                    string tipoUsuario = "";
+                    string tipoUsuario;
                     if (!string.IsNullOrEmpty(mov.CodCliente))
                         tipoUsuario = "Cliente";
                     else if (!string.IsNullOrEmpty(mov.CodProveedor))
@@ -124,14 +125,40 @@ namespace Formularios.LibroDiarioViews
                         tipoUsuario = "Sin asignar";
 
                     row.Cells["ColTipoUser"].Value = tipoUsuario;
-                    row.Cells["ColTipoMovimiento"].Value = mov.TipoMovimiento;
+
+                    // Determinar etiqueta visible para el usuario según contexto y tipo real
+                    // manteniendo por detrás el valor real mov.TipoMovimiento ("INGRESO"/"EGRESO")
+                    string displayTipo;
+                    if (tipoUsuario == "Cliente")
+                    {
+                        // Cliente: "DEBE" (EGRESO) / "PAGA" (INGRESO)
+                        displayTipo = string.Equals(mov.TipoMovimiento, "INGRESO", StringComparison.OrdinalIgnoreCase)
+                            ? "PAGA"
+                            : "DEBE";
+                    }
+                    else if (tipoUsuario == "Proveedor")
+                    {
+                        // Proveedor: "SE LE DEBE" (EGRESO) / "SE LE PAGA" (INGRESO PORQUE CANCELO MI DEUDA)
+                        displayTipo = string.Equals(mov.TipoMovimiento, "INGRESO", StringComparison.OrdinalIgnoreCase)
+                            ? "SE LE DEBE"
+                            : "SE LE PAGA";
+                    }
+                    else
+                    {
+                        // Sin asignar u otros: mostramos el valor técnico (INGRESO/EGRESO)
+                        displayTipo = mov.TipoMovimiento?.ToUpperInvariant() ?? string.Empty;
+                    }
+
+                    row.Cells["ColTipoMovimiento"].Value = displayTipo;
                     row.Cells["ColFechaMovimiento"].Value = mov.Fecha.ToString("dd/MM/yyyy HH:mm");
                     row.Cells["ColMedioPago"].Value = mov.MetodoPago;
                     row.Cells["ColImporte"].Value = mov.Monto.ToString("C2");
                     row.Cells["ColDescripcion"].Value = mov.Concepto;
 
-                    // Aplicar colores según tipo
-                    if (mov.TipoMovimiento == "INGRESO")
+                    row.Cells["ColCodOrdenTrabajo"].Value = mov.CodOrdenTrabajo;
+
+                    // Aplicar colores según el valor real (mov.TipoMovimiento)
+                    if (string.Equals(mov.TipoMovimiento, "INGRESO", StringComparison.OrdinalIgnoreCase) && mov.CodProveedor == null)
                     {
                         row.Cells["ColTipoMovimiento"].Style.ForeColor = System.Drawing.Color.Green;
                         row.Cells["ColTipoMovimiento"].Style.Font = new System.Drawing.Font(dgvMovimientos.Font, FontStyle.Bold);
@@ -143,13 +170,11 @@ namespace Formularios.LibroDiarioViews
                     }
 
                     // Resaltar efectivo
-                    if (mov.MetodoPago == "EFECTIVO")
+                    if (string.Equals(mov.MetodoPago, "EFECTIVO", StringComparison.OrdinalIgnoreCase))
                     {
                         row.Cells["ColMedioPago"].Style.BackColor = System.Drawing.Color.LightYellow;
                         row.Cells["ColMedioPago"].Style.Font = new System.Drawing.Font(dgvMovimientos.Font, FontStyle.Bold);
                     }
-                
-
                 }
 
                 // ✅ Actualizar saldo de caja (ejecutar SP)
@@ -168,7 +193,6 @@ namespace Formularios.LibroDiarioViews
                 );
             }
         }
-
         private async Task ActualizarSaldoCajaAsync()
         {
             try
@@ -253,141 +277,57 @@ namespace Formularios.LibroDiarioViews
                     return;
                 }
 
-                // Crear SaveFileDialog
-                SaveFileDialog saveDialog = new SaveFileDialog();
-                saveDialog.Filter = "Excel Files|*.xlsx";
-                saveDialog.Title = "Guardar archivo Excel";
-                saveDialog.FileName = $"LibroDiario_{fechaActual:yyyyMMdd}.xlsx";
-
-                if (saveDialog.ShowDialog() != DialogResult.OK)
-                    return;
-
-                this.Cursor = Cursors.WaitCursor;
-
-                // Crear archivo Excel con ClosedXML
-                using (var workbook = new XLWorkbook())
+                // SaveFileDialog
+                using (SaveFileDialog saveDialog = new SaveFileDialog())
                 {
-                    var worksheet = workbook.Worksheets.Add("Libro Diario");
+                    saveDialog.Filter = "Excel Files|*.xlsx";
+                    saveDialog.Title = "Guardar archivo Excel";
+                    saveDialog.FileName = $"LibroDiario_{fechaActual:yyyyMMdd}.xlsx";
 
-                    // ✅ Encabezados
-                    int col = 1;
-                    worksheet.Cell(1, col++).Value = "Nombre";
-                    worksheet.Cell(1, col++).Value = "Tipo Usuario";
-                    worksheet.Cell(1, col++).Value = "Tipo Movimiento";
-                    worksheet.Cell(1, col++).Value = "Fecha Movimiento";
-                    worksheet.Cell(1, col++).Value = "Medio Pago";
-                    worksheet.Cell(1, col++).Value = "Importe";
-                    worksheet.Cell(1, col++).Value = "Descripción";
+                    if (saveDialog.ShowDialog() != DialogResult.OK)
+                        return;
 
-                    // Estilo encabezados
-                    var headerRange = worksheet.Range(1, 1, 1, col - 1);
-                    headerRange.Style.Font.Bold = true;
-                    headerRange.Style.Fill.BackgroundColor = XLColor.LightGray;
-                    headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                    this.Cursor = Cursors.WaitCursor;
 
-                    // ✅ Datos
-                    int row = 2;
-                    decimal totalCaja = 0;
+                    // Llamada al helper que ya implementaste
+                    ExcelHelper.ExportFromDataGridView(dgvMovimientos, saveDialog.FileName, fechaActual);
 
-                    foreach (DataGridViewRow dgvRow in dgvMovimientos.Rows)
+                    this.Cursor = Cursors.Default;
+
+                    MessageBox.Show(
+                        $"✅ Archivo exportado correctamente:\n\n{saveDialog.FileName}",
+                        "Éxito",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information
+                    );
+
+                    // Preguntar si desea abrir
+                    var resultado = MessageBox.Show(
+                        "¿Desea abrir el archivo?",
+                        "Abrir Excel",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question
+                    );
+
+                    if (resultado == DialogResult.Yes)
                     {
-                        if (dgvRow.IsNewRow) continue;
-
-                        col = 1;
-
-                        // Nombre
-                        worksheet.Cell(row, col++).Value = dgvRow.Cells["ColNombre"].Value?.ToString() ?? "";
-
-                        // Tipo Usuario
-                        worksheet.Cell(row, col++).Value = dgvRow.Cells["ColTipoUser"].Value?.ToString() ?? "";
-
-                        // Tipo Movimiento
-                        string tipoMov = dgvRow.Cells["ColTipoMovimiento"].Value?.ToString() ?? "";
-                        worksheet.Cell(row, col++).Value = tipoMov;
-
-                        // Fecha Movimiento
-                        worksheet.Cell(row, col++).Value = dgvRow.Cells["ColFechaMovimiento"].Value?.ToString() ?? "";
-
-                        // Medio Pago
-                        string medioPago = dgvRow.Cells["ColMedioPago"].Value?.ToString() ?? "";
-                        worksheet.Cell(row, col++).Value = dgvRow.Cells["ColMedioPago"].Value?.ToString() ?? "";
-
-                        // Importe
-                        string importeStr = dgvRow.Cells["ColImporte"].Value?.ToString() ?? "$0";
-
-                        // Limpiar el string para parsear
-                        importeStr = importeStr.Replace("$", "").Replace(".", "").Replace(",", ".");
-                        importeStr = importeStr.Trim();
-
-                        if (decimal.TryParse(importeStr, System.Globalization.NumberStyles.Any,
-                            System.Globalization.CultureInfo.InvariantCulture, out decimal importe))
+                        try
                         {
-                            worksheet.Cell(row, col).Value = importe;
-                            worksheet.Cell(row, col).Style.NumberFormat.Format = "$#,##0.00";
-
-                            // Calcular total
-                            if (tipoMov == "INGRESO" && medioPago == "EFECTIVO")
-                                totalCaja += importe;
-                            else if (tipoMov == "EGRESO" && medioPago == "EFECTIVO")
-                                totalCaja -= importe;
+                            var psi = new System.Diagnostics.ProcessStartInfo(saveDialog.FileName) { UseShellExecute = true };
+                            System.Diagnostics.Process.Start(psi);
                         }
-                        else
+                        catch
                         {
-                            worksheet.Cell(row, col).Value = importeStr;
+                            // ignorar si no se puede abrir
                         }
-                        col++;
-
-                        // Descripción
-                        worksheet.Cell(row, col++).Value = dgvRow.Cells["ColDescripcion"].Value?.ToString() ?? "";
-
-                        row++;
                     }
-
-                    // ✅ Total al final
-                    row++; // Fila vacía
-                    worksheet.Cell(row, 5).Value = "TOTAL CAJA:";
-                    worksheet.Cell(row, 5).Style.Font.Bold = true;
-                    worksheet.Cell(row, 5).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-
-                    worksheet.Cell(row, 6).Value = totalCaja;
-                    worksheet.Cell(row, 6).Style.NumberFormat.Format = "$#,##0.00";
-                    worksheet.Cell(row, 6).Style.Font.Bold = true;
-                    worksheet.Cell(row, 6).Style.Fill.BackgroundColor = XLColor.LightYellow;
-
-                    // Ajustar columnas
-                    worksheet.Columns().AdjustToContents();
-
-                    // Guardar
-                    workbook.SaveAs(saveDialog.FileName);
-                }
-
-                this.Cursor = Cursors.Default;
-
-                MessageBox.Show(
-                    $"✅ Archivo exportado correctamente:\n\n{saveDialog.FileName}",
-                    "Éxito",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information
-                );
-
-                // Preguntar si desea abrir
-                var resultado = MessageBox.Show(
-                    "¿Desea abrir el archivo?",
-                    "Abrir Excel",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question
-                );
-
-                if (resultado == DialogResult.Yes)
-                {
-                    System.Diagnostics.Process.Start(saveDialog.FileName);
                 }
             }
             catch (Exception ex)
             {
                 this.Cursor = Cursors.Default;
                 MessageBox.Show(
-                    $"Error al exportar: {ex.Message}\n\nDetalles: {ex.ToString()}",
+                    $"Error al exportar: {ex.Message}\n\nDetalles: {ex}",
                     "Error",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error
@@ -411,7 +351,7 @@ namespace Formularios.LibroDiarioViews
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information
                 );
-                CargarGrillaAsync().Wait();
+                CargarGrillaAsync();
             }
 
         }
@@ -458,19 +398,7 @@ namespace Formularios.LibroDiarioViews
             try
             {
                 // Validar que se hizo click en una fila válida
-                if (e.RowIndex < 0) return;
-
-                string descripcion = dgvMovimientos.Rows[e.RowIndex].Cells["ColDescripcion"].Value?.ToString().ToLower();
-                if (descripcion.Contains("presupuesto") || descripcion.Contains("orden"))
-                {
-                        MessageBox.Show(
-                            "No se puede modificar/eliminar movimientos generados automáticamente por presupuestos u órdenes de trabajo.",
-                            "Acción no permitida",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Warning
-                        );
-                        return; // ✅ SALIR SIN HACER NADA
-                }
+                if (e.RowIndex < 0) return;            
 
                 // Obtener el nombre de la columna clickeada
                 string nombreColumna = dgvMovimientos.Columns[e.ColumnIndex].Name;
@@ -483,12 +411,27 @@ namespace Formularios.LibroDiarioViews
                 // ✅ COLUMNA EDITAR
                 if (nombreColumna == "ColEditar")
                 {
-                    await EditarMovimientoAsync(codMovimiento);
+                    string descripcion = dgvMovimientos.Rows[e.RowIndex].Cells["ColDescripcion"].Value?.ToString().ToLower();
+                    if (descripcion.Contains("presupuesto") || descripcion.Contains("orden"))
+                    {
+                        MessageBox.Show(
+                            "No se puede modificar movimientos generados automáticamente por presupuestos u órdenes de trabajo.",
+                            "Acción no permitida",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Warning
+                        );
+                        return; // ✅ SALIR SIN HACER NADA
+                    }
+                    else
+                    {
+                        await EditarMovimientoAsync(codMovimiento);
+                    }
                 }
                 // ✅ COLUMNA BORRAR
                 else if (nombreColumna == "ColBorrar")
                 {
-                    await EliminarMovimientoAsync(codMovimiento);
+                    string codOrdenTrabajo = dgvMovimientos.Rows[e.RowIndex].Cells["ColCodOrdenTrabajo"].Value?.ToString();
+                    await EliminarMovimientoAsync(codMovimiento, codOrdenTrabajo);
                 }
             }
             catch (Exception ex)
@@ -520,6 +463,11 @@ namespace Formularios.LibroDiarioViews
                     return;
                 }
 
+                if (movimiento.Concepto == "Apertura de caja")
+                {
+                    movimiento.esAperturaCaja = true;
+                }
+
                 // ✅ Abrir formulario en modo EDICIÓN
                 var frmAgregar = new frmAgregarMovimiento(IdCajaDiariaActual.Value, movimiento);
 
@@ -544,7 +492,7 @@ namespace Formularios.LibroDiarioViews
         // ELIMINAR MOVIMIENTO
         // =====================================================
 
-        private async Task EliminarMovimientoAsync(string codMovimiento)
+        private async Task EliminarMovimientoAsync(string codMovimiento, string codOrdenTrabajo)
         {
             try
             {
@@ -562,7 +510,7 @@ namespace Formularios.LibroDiarioViews
                 this.Cursor = Cursors.WaitCursor;
 
                 // Eliminar (negocio se encarga de actualizar saldo si es efectivo)
-                bool exito = await negLibroDiario.EliminarMovimientoAsync(codMovimiento);
+                bool exito = await negLibroDiario.EliminarMovimientoAsync(codMovimiento, codOrdenTrabajo);
 
                 this.Cursor = Cursors.Default;
 
@@ -637,14 +585,14 @@ namespace Formularios.LibroDiarioViews
                 // ✅ Si es día actual → Habilitar botones
                 // ❌ Si es día anterior → Deshabilitar botones
                 bool esDiaActual = (fechaSeleccionada.Date == DateTime.Today);
-                HabilitarBotones(esDiaActual);
+                //HabilitarBotones(esDiaActual); COMENTO YA QUE EL USUARIO QUIERE EDITAR O PODER AGREGAR O ELIMINAR COSAS EN DIAS PREVIOS
 
                 if (!esDiaActual)
                 {
                     MessageBox.Show(
                         "Está consultando un día anterior.\n\n" +
-                        "No podrá agregar, editar o eliminar movimientos.",
-                        "Modo consulta",
+                        "lo que modifique afectara al saldo de la caja en el dia consultado, y tendra impacto en las cuentas corrientes en caso que involucre a un cliente o proveedor.",
+                        "Aviso",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information
                     );

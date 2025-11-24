@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Configuration;
 using Entidades;
+using Utiles;
 
 namespace Datos
 {
@@ -107,8 +108,8 @@ namespace Datos
 
                             string sqlMov = @"
                             INSERT INTO LibroDiario
-                            (CodMovimiento, IdCajaDiaria, Fecha, TipoMovimiento, MetodoPago, Concepto, Monto, CodCliente, CodOrdenTrabajo, Activo)
-                            VALUES (@CodMov, @IdCaja, @Fecha, @TipoMov, @MetodoPago, @Concepto, @Monto, @CodCliente, @CodOrdenTrabajo, 1);
+                            (CodMovimiento, IdCajaDiaria, Fecha, TipoMovimiento, MetodoPago, Concepto, Monto, CodCliente, CodOrdenTrabajo, Activo, Signo)
+                            VALUES (@CodMov, @IdCaja, @Fecha, @TipoMov, @MetodoPago, @Concepto, @Monto, @CodCliente, @CodOrdenTrabajo, @Activo, @Signo);
                             ";
                             using (var cmdMov = new SqlCommand(sqlMov, cn, tx))
                             {
@@ -116,11 +117,13 @@ namespace Datos
                                 cmdMov.Parameters.AddWithValue("@IdCaja", (object)idCajaDiariaParaMovimiento ?? DBNull.Value);
                                 cmdMov.Parameters.AddWithValue("@Fecha", DateTime.Now);
                                 cmdMov.Parameters.AddWithValue("@TipoMov", "INGRESO");
-                                cmdMov.Parameters.AddWithValue("@MetodoPago", "TRANSFERENCIA");
+                                cmdMov.Parameters.AddWithValue("@MetodoPago", "NO APLICA");
                                 cmdMov.Parameters.AddWithValue("@Concepto", $"Presupuesto/Orden {orden.CodOrden}");
                                 cmdMov.Parameters.AddWithValue("@Monto", orden.TotalGeneral);
                                 cmdMov.Parameters.AddWithValue("@CodCliente", (object)orden.CodCliente ?? DBNull.Value);
                                 cmdMov.Parameters.AddWithValue("@CodOrdenTrabajo", orden.CodOrden);
+                                cmdMov.Parameters.AddWithValue("@Activo", true);
+                                cmdMov.Parameters.AddWithValue("@Signo", 0);
 
                                 await cmdMov.ExecuteNonQueryAsync();
                             }
@@ -142,9 +145,9 @@ namespace Datos
         {
             // Usamos bloqueo para evitar race conditions
             string sql = @"
-SELECT ISNULL(MAX(CAST(SUBSTRING(CodPresupuesto, 3, 8) AS INT)), 0)
-FROM OrdenTrabajo WITH (UPDLOCK, HOLDLOCK);
-";
+                        SELECT ISNULL(MAX(CAST(SUBSTRING(CodPresupuesto, 3, 8) AS INT)), 0)
+                        FROM OrdenTrabajo WITH (UPDLOCK, HOLDLOCK);
+                        ";
             using (var cmd = new SqlCommand(sql, conn, tx))
             {
                 object res = await cmd.ExecuteScalarAsync();
@@ -158,15 +161,188 @@ FROM OrdenTrabajo WITH (UPDLOCK, HOLDLOCK);
         private async Task<string> GenerarCodigoMovimientoAsync(SqlConnection conn, SqlTransaction tx)
         {
             string query = @"
-SELECT ISNULL(MAX(CAST(SUBSTRING(CodMovimiento, 3, 8) AS INT)), 0)
-FROM LibroDiario WITH (UPDLOCK, HOLDLOCK);
-";
+                        SELECT ISNULL(MAX(CAST(SUBSTRING(CodMovimiento, 3, 8) AS INT)), 0)
+                        FROM LibroDiario WITH (UPDLOCK, HOLDLOCK);
+                        ";
             using (var cmd = new SqlCommand(query, conn, tx))
             {
                 object res = await cmd.ExecuteScalarAsync();
                 int max = (res == DBNull.Value || res == null) ? 0 : Convert.ToInt32(res);
                 int siguiente = max + 1;
                 return "LD" + siguiente.ToString("D5"); // LD00001
+            }
+        }
+
+
+
+
+        /// <summary>
+        /// Lista las órdenes activas (cabecera). No trae los detalles aquí para mantener la consulta ligera.
+        /// Devuelve lista con propiedades mínimas: CodOrden, Fecha, DescripcionTrabajo, NombreCliente, PatenteVehiculo, ModeloVehiculo.
+        /// </summary>
+        public async Task<List<OrdenTrabajo>> ListarActivasAsync()
+        {
+            var resultado = new List<OrdenTrabajo>();
+
+            const string query = @"
+                SELECT 
+                    o.CodPresupuesto,
+                    o.Fecha,
+                    o.DescripcionTrabajo,
+                    o.CodCliente,
+                    ISNULL(c.Nombre + ' ' + c.Apellido, '') AS NombreCliente,
+                    ISNULL(v.Patente, '') AS PatenteVehiculo,
+                    ISNULL(v.Modelo, '') AS ModeloVehiculo
+                FROM OrdenTrabajo o
+                LEFT JOIN Clientes c ON o.CodCliente = c.CodCliente
+                LEFT JOIN Vehiculos v ON o.CodVehiculo = v.CodVehiculo
+                WHERE ISNULL(o.Activo, 1) = 1
+                ORDER BY o.Fecha DESC, o.CodPresupuesto DESC;";
+
+            try
+            {
+                using (var conn = new SqlConnection(connectionString))
+                using (var cmd = new SqlCommand(query, conn))
+                {
+                    await conn.OpenAsync();
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            var ord = new OrdenTrabajo
+                            {
+                                CodOrden = reader.IsDBNull(0) ? null : reader.GetString(0),
+                                Fecha = reader.IsDBNull(1) ? DateTime.MinValue : reader.GetDateTime(1),
+                                DescripcionTrabajo = reader.IsDBNull(2) ? null : reader.GetString(2),
+                                CodCliente = reader.IsDBNull(3) ? null : reader.GetString(3),
+                                NombreCliente = reader.IsDBNull(4) ? null : reader.GetString(4),
+                                PatenteVehiculo = reader.IsDBNull(5) ? null : reader.GetString(5),
+                                ModeloVehiculo = reader.IsDBNull(6) ? null : reader.GetString(6)
+                            };
+
+                            resultado.Add(ord);
+                        }
+                    }
+                }
+
+                return resultado;
+            }
+            catch (SqlException ex)
+            {
+                LogHelper.GuardarError(ex, "DaOrdenTrabajo", "ListarActivasAsync");
+                throw new Exception($"Error al listar órdenes activas: {ex.Message}", ex);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.GuardarError(ex, "DaOrdenTrabajo", "ListarActivasAsync");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Obtiene la orden completa (cabecera + detalles) por su código.
+        /// </summary>
+        public async Task<OrdenTrabajo> ObtenerPorCodigoAsync(string codOrden)
+        {
+            if (string.IsNullOrWhiteSpace(codOrden)) throw new ArgumentNullException(nameof(codOrden));
+
+            const string sqlCabecera = @"
+                SELECT 
+                    o.CodPresupuesto,
+                    o.Fecha,
+                    o.CodCliente,
+                    o.CodVehiculo,
+                    ISNULL(c.Nombre + ' ' + c.Apellido, '') AS NombreCliente,
+                    ISNULL(v.Patente, '') AS PatenteVehiculo,
+                    ISNULL(v.Modelo, '') AS ModeloVehiculo,
+                    o.Kilometraje,
+                    o.DescripcionTrabajo,
+                    o.Usuario
+                FROM OrdenTrabajo o
+                LEFT JOIN Clientes c ON o.CodCliente = c.CodCliente
+                LEFT JOIN Vehiculos v ON o.CodVehiculo = v.CodVehiculo
+                WHERE o.CodPresupuesto = @CodOrden
+                  AND ISNULL(o.Activo,1) = 1;";
+
+            const string sqlDetalles = @"
+                SELECT Renglon, Tipo, Descripcion, Precio
+                FROM OrdenTrabajoDetalle
+                WHERE CodPresupuesto = @CodOrden
+                ORDER BY Renglon;";
+
+            try
+            {
+                var orden = new OrdenTrabajo();
+
+                using (var conn = new SqlConnection(connectionString))
+                {
+                    await conn.OpenAsync();
+
+                    // Cabecera
+                    using (var cmd = new SqlCommand(sqlCabecera, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@CodOrden", codOrden);
+
+                        using (var reader = await cmd.ExecuteReaderAsync())
+                        {
+                            if (await reader.ReadAsync())
+                            {
+                                orden = new OrdenTrabajo
+                                {
+                                    CodOrden = reader.IsDBNull(0) ? null : reader.GetString(0),
+                                    Fecha = reader.IsDBNull(1) ? DateTime.MinValue : reader.GetDateTime(1),
+                                    CodCliente = reader.IsDBNull(2) ? null : reader.GetString(2),
+                                    CodVehiculo = reader.IsDBNull(3) ? null : reader.GetString(3),
+                                    NombreCliente = reader.IsDBNull(4) ? null : reader.GetString(4),
+                                    PatenteVehiculo = reader.IsDBNull(5) ? null : reader.GetString(5),
+                                    ModeloVehiculo = reader.IsDBNull(6) ? null : reader.GetString(6),
+                                    Kilometraje = reader.IsDBNull(7) ? (int?)null : reader.GetInt32(7),
+                                    DescripcionTrabajo = reader.IsDBNull(8) ? null : reader.GetString(8),
+                                    Usuario = reader.IsDBNull(9) ? null : reader.GetString(9)
+                                };
+                            }
+                            else
+                            {
+                                // no encontrada
+                                return null;
+                            }
+                        }
+                    }
+
+                    // Detalles
+                    using (var cmdDet = new SqlCommand(sqlDetalles, conn))
+                    {
+                        cmdDet.Parameters.AddWithValue("@CodOrden", codOrden);
+
+                        using (var readerDet = await cmdDet.ExecuteReaderAsync())
+                        {
+                            while (await readerDet.ReadAsync())
+                            {
+                                var det = new OrdenTrabajoDetalle
+                                {
+                                    Renglon = readerDet.IsDBNull(0) ? 0 : readerDet.GetInt32(0),
+                                    Tipo = readerDet.IsDBNull(1) ? null : readerDet.GetString(1),
+                                    Descripcion = readerDet.IsDBNull(2) ? null : readerDet.GetString(2),
+                                    Precio = readerDet.IsDBNull(3) ? 0m : readerDet.GetDecimal(3)
+                                };
+
+                                orden.Detalles.Add(det);
+                            }
+                        }
+                    }
+                }
+
+                return orden;
+            }
+            catch (SqlException ex)
+            {
+                LogHelper.GuardarError(ex, "DaOrdenTrabajo", "ObtenerPorCodigoAsync", $"CodOrden: {codOrden}");
+                throw new Exception($"Error al obtener orden: {ex.Message}", ex);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.GuardarError(ex, "DaOrdenTrabajo", "ObtenerPorCodigoAsync");
+                throw;
             }
         }
 

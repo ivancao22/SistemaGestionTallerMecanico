@@ -747,121 +747,23 @@ namespace Formularios.LibroDiarioViews.OrdenTrabajoViews
             return true;
         }
 
-        //public static string GenerarPdfOrdenTrabajo(OrdenTrabajo orden, string rutaSalida)
-        //{
-        //    if (orden == null) throw new ArgumentNullException(nameof(orden));
-        //    if (string.IsNullOrWhiteSpace(rutaSalida)) throw new ArgumentNullException(nameof(rutaSalida));
+        private void btnAbrirHistorial_Click(object sender, EventArgs e)
+        {
+            //abrir frm de visor de ordenes, donde se listan todas las ordenes, y se pueden volver a generar los pdf 
+            try
+            {
+                using (var frm = new frmHistorialOrdenesTrabajo())
+                {
+                    frm.StartPosition = FormStartPosition.CenterParent;
+                    frm.ShowDialog(this);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al abrir historial: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
 
-        //    var carpeta = Path.GetDirectoryName(rutaSalida);
-        //    if (!Directory.Exists(carpeta))
-        //        Directory.CreateDirectory(carpeta);
-
-        //    if (File.Exists(rutaSalida))
-        //        File.Delete(rutaSalida);
-
-        //    try
-        //    {
-        //        using (var fs = new FileStream(rutaSalida, FileMode.Create, FileAccess.Write))
-        //        {
-        //            var doc = new PdfDocument(PageSize.A4, 36, 36, 36, 36);
-        //            var writer = PdfWriter.GetInstance(doc, fs);
-        //            doc.Open();
-
-        //            var bf = BaseFont.CreateFont(BaseFont.HELVETICA, BaseFont.CP1252, false);
-        //            var fontTitle = new PdfFont(bf, 14, PdfFont.BOLD);
-        //            var fontHeader = new PdfFont(bf, 9, PdfFont.NORMAL);
-        //            var fontBold = new PdfFont(bf, 9, PdfFont.BOLD);
-
-        //            // Cabecera
-        //            var tblCab = new PdfPTable(new float[] { 1f, 2f }) { WidthPercentage = 100 };
-        //            var celLogo = new PdfPCell() { Border = PdfRectangle.NO_BORDER, VerticalAlignment = Element.ALIGN_TOP };
-        //            var pLogo = new PdfParagraph();
-        //            pLogo.Add(new PdfChunk("C  D  M\n", new PdfFont(bf, 20, PdfFont.BOLD)));
-        //            pLogo.Add(new PdfChunk("Carlos De Marte\nServicio Integral del Automóvil\nIng. White 5398 esq. G Méndez\nCarapachay\nTel: 11-5-691-6968\n", fontHeader));
-        //            celLogo.AddElement(pLogo);
-        //            tblCab.AddCell(celLogo);
-
-        //            var celInfo = new PdfPCell() { Border = PdfRectangle.NO_BORDER, HorizontalAlignment = Element.ALIGN_RIGHT, VerticalAlignment = Element.ALIGN_TOP };
-        //            var pInfo = new PdfParagraph();
-        //            pInfo.Add(new PdfChunk($"FECHA: {orden.Fecha:dd/MM/yyyy}\n", fontHeader));
-        //            var clienteTexto = string.IsNullOrWhiteSpace(orden.CodCliente) ? "" : orden.CodCliente;
-        //            pInfo.Add(new PdfChunk($"CLIENTE: {clienteTexto}\n", fontHeader));
-        //            celInfo.AddElement(pInfo);
-        //            tblCab.AddCell(celInfo);
-
-        //            doc.Add(tblCab);
-        //            doc.Add(new PdfParagraph("\n"));
-
-        //            // Datos vehículo
-        //            var tblDatos = new PdfPTable(new float[] { 1f, 1f, 0.6f }) { WidthPercentage = 100, SpacingBefore = 4, SpacingAfter = 6 };
-        //            var celCliente = new PdfPCell(new PdfPhrase($"CLIENTE: {clienteTexto}", fontBold)) { Colspan = 3, HorizontalAlignment = Element.ALIGN_LEFT, Padding = 4 };
-        //            tblDatos.AddCell(celCliente);
-
-        //            tblDatos.AddCell(new PdfPCell(new PdfPhrase($"VEHÍCULO: {orden.CodVehiculo ?? ""}", fontHeader)) { Padding = 4 });
-        //            tblDatos.AddCell(new PdfPCell(new PdfPhrase($"PAT: ", fontHeader)) { Padding = 4 });
-        //            tblDatos.AddCell(new PdfPCell(new PdfPhrase($"KM: {orden.Kilometraje?.ToString() ?? ""}", fontHeader)) { Padding = 4 });
-
-        //            doc.Add(tblDatos);
-
-        //            if (!string.IsNullOrWhiteSpace(orden.DescripcionTrabajo))
-        //            {
-        //                var pDet = new PdfParagraph("DETALLE DEL TRABAJO:", fontBold) { SpacingAfter = 4 };
-        //                doc.Add(pDet);
-        //                var pTexto = new PdfParagraph(orden.DescripcionTrabajo, fontHeader) { SpacingAfter = 8 };
-        //                doc.Add(pTexto);
-        //            }
-
-        //            // Items
-        //            var tblItems = new PdfPTable(new float[] { 8f, 2f }) { WidthPercentage = 100, SpacingBefore = 6, HeaderRows = 1 };
-        //            tblItems.AddCell(new PdfPCell(new PdfPhrase("DETALLE", fontBold)) { HorizontalAlignment = Element.ALIGN_LEFT, Padding = 6 });
-        //            tblItems.AddCell(new PdfPCell(new PdfPhrase("PRECIO", fontBold)) { HorizontalAlignment = Element.ALIGN_RIGHT, Padding = 6 });
-
-        //            int detallesCount = orden.Detalles?.Count ?? 0;
-        //            int maxFilas = Math.Max(detallesCount, 12);
-        //            for (int i = 0; i < maxFilas; i++)
-        //            {
-        //                if (i < detallesCount)
-        //                {
-        //                    var d = orden.Detalles[i];
-        //                    tblItems.AddCell(new PdfPCell(new PdfPhrase(d.Descripcion ?? "-", fontHeader)) { Padding = 6 });
-        //                    tblItems.AddCell(new PdfPCell(new PdfPhrase(d.Precio.ToString("N2"), fontHeader)) { Padding = 6, HorizontalAlignment = Element.ALIGN_RIGHT });
-        //                }
-        //                else
-        //                {
-        //                    tblItems.AddCell(new PdfPCell(new PdfPhrase(" ", fontHeader)) { Padding = 6 });
-        //                    tblItems.AddCell(new PdfPCell(new PdfPhrase(" ", fontHeader)) { Padding = 6 });
-        //                }
-        //            }
-        //            doc.Add(tblItems);
-
-        //            // Totales
-        //            doc.Add(new PdfParagraph("\n"));
-        //            var tblTot = new PdfPTable(new float[] { 6f, 2f }) { WidthPercentage = 100 };
-        //            tblTot.AddCell(new PdfPCell(new PdfPhrase("TOTAL REPUESTOS:", fontBold)) { Border = PdfRectangle.NO_BORDER, Padding = 6, HorizontalAlignment = Element.ALIGN_LEFT });
-        //            tblTot.AddCell(new PdfPCell(new PdfPhrase((orden.TotalRepuestos).ToString("N2"), fontBold)) { Border = PdfRectangle.NO_BORDER, Padding = 6, HorizontalAlignment = Element.ALIGN_RIGHT });
-
-        //            tblTot.AddCell(new PdfPCell(new PdfPhrase("TOTAL MANO DE OBRA:", fontBold)) { Border = PdfRectangle.NO_BORDER, Padding = 6, HorizontalAlignment = Element.ALIGN_LEFT });
-        //            tblTot.AddCell(new PdfPCell(new PdfPhrase((orden.TotalManoObra).ToString("N2"), fontBold)) { Border = PdfRectangle.NO_BORDER, Padding = 6, HorizontalAlignment = Element.ALIGN_RIGHT });
-
-        //            tblTot.AddCell(new PdfPCell(new PdfPhrase(" ", fontBold)) { Border = PdfRectangle.NO_BORDER, Padding = 4 });
-        //            tblTot.AddCell(new PdfPCell(new PdfPhrase(" ", fontBold)) { Border = PdfRectangle.NO_BORDER, Padding = 4 });
-
-        //            tblTot.AddCell(new PdfPCell(new PdfPhrase("TOTAL GENERAL:", fontBold)) { Border = PdfRectangle.NO_BORDER, Padding = 6, HorizontalAlignment = Element.ALIGN_LEFT });
-        //            tblTot.AddCell(new PdfPCell(new PdfPhrase((orden.TotalGeneral).ToString("N2"), fontBold)) { Border = PdfRectangle.NO_BORDER, Padding = 6, HorizontalAlignment = Element.ALIGN_RIGHT });
-
-        //            doc.Add(tblTot);
-
-        //            doc.Close();
-        //            writer.Close();
-        //            fs.Close();
-        //        }
-
-        //        return rutaSalida;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        throw new Exception($"Error generando PDF en '{rutaSalida}': {ex.Message}", ex);
-        //    }
-        //}
+       
     }
 }

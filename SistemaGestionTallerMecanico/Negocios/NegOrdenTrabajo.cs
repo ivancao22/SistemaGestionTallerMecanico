@@ -42,5 +42,37 @@ namespace Negocios
             // PRE-YYYYMMDD-HHMMSS-usu
             return $"OT-{DateTime.Now:yyyyMMddHHmmss}";
         }
+
+        /// <summary>
+        /// Lista órdenes activas (wrapper de la capa Datos).
+        /// </summary>
+        public async Task<List<OrdenTrabajo>> ListarOrdenesActivasAsync()
+        {
+            try
+            {
+                return await _da.ListarActivasAsync();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Obtiene una orden completa por código (wrapper de la capa Datos).
+        /// </summary>
+        public async Task<OrdenTrabajo> ObtenerPorCodigoAsync(string codOrden)
+        {
+            try
+            {
+                return await _da.ObtenerPorCodigoAsync(codOrden);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+
     }
 }

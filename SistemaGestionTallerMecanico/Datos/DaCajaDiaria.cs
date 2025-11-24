@@ -115,47 +115,136 @@ namespace Datos
         // INSERTAR NUEVA CAJA
         // =====================================================
 
+        //public async Task<int> InsertarAsync(CajaDiaria caja)
+        //{
+        //    try
+        //    {
+        //        string query = @"
+        //            INSERT INTO CajaDiaria 
+        //            (Fecha, SaldoInicial, SaldoFinal, Usuario, FechaHoraApertura) 
+        //            OUTPUT INSERTED.Id
+        //            VALUES 
+        //            (@Fecha, @SaldoInicial, @SaldoInicial, @Usuario, GETDATE())";
+
+        //        using (SqlConnection conn = new SqlConnection(connectionString))
+        //        {
+        //            SqlCommand cmd = new SqlCommand(query, conn);
+        //            cmd.Parameters.AddWithValue("@Fecha", caja.Fecha.Date);
+        //            cmd.Parameters.AddWithValue("@SaldoInicial", caja.SaldoInicial);
+        //            cmd.Parameters.AddWithValue("@Usuario", caja.Usuario ?? (object)DBNull.Value);
+
+        //            await conn.OpenAsync();
+        //            int idGenerado = (int)await cmd.ExecuteScalarAsync();
+
+        //            LogHelper.GuardarInfo(
+        //                $"Caja creada: Fecha={caja.Fecha:dd/MM/yyyy}, SaldoInicial={caja.SaldoInicial:C}, Usuario={caja.Usuario}",
+        //                "DaCajaDiaria",
+        //                "InsertarAsync"
+        //            );
+
+        //            return idGenerado;
+        //        }
+        //    }
+        //    catch (SqlException ex)
+        //    {
+        //        LogHelper.GuardarError(ex, "DaCajaDiaria", "InsertarAsync", $"Fecha: {caja.Fecha:yyyy-MM-dd}, SaldoInicial: {caja.SaldoInicial}");
+
+        //        // Verificar error de UNIQUE constraint
+        //        if (ex.Number == 2627 || ex.Number == 2601)
+        //        {
+        //            throw new Exception($"Ya existe una caja para el día {caja.Fecha:dd/MM/yyyy}", ex);
+        //        }
+
+        //        throw new Exception($"Error al crear la caja: {ex.Message}", ex);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        LogHelper.GuardarError(ex, "DaCajaDiaria", "InsertarAsync");
+        //        throw;
+        //    }
+        //}
+
+
         public async Task<int> InsertarAsync(CajaDiaria caja)
         {
+            if (caja == null) throw new ArgumentNullException(nameof(caja));
+
+            string sqlInsertCaja = @"
+                                     INSERT INTO CajaDiaria 
+                                         (Fecha, SaldoInicial, SaldoFinal, Usuario, FechaHoraApertura) 
+                                     OUTPUT INSERTED.Id
+                                     VALUES 
+                                     (@Fecha, @SaldoInicial, @SaldoInicial, @Usuario, GETDATE());";
+
+            string sqlInsertLibro = @"
+                                    INSERT INTO LibroDiario
+                                        (CodMovimiento, IdCajaDiaria, Fecha, TipoMovimiento, MetodoPago, 
+                                         Concepto, Monto, CodCliente, CodProveedor, CodOrdenTrabajo, Activo, Signo)
+                                    VALUES
+                                        (@CodMov, @IdCaja, GETDATE(), @Tipo, @Metodo, @Concepto, @Monto, @CodCliente, @CodProveedor, @CodOrden, 1, @Signo);";
+
             try
             {
-                string query = @"
-                    INSERT INTO CajaDiaria 
-                    (Fecha, SaldoInicial, SaldoFinal, Usuario, FechaHoraApertura) 
-                    OUTPUT INSERTED.Id
-                    VALUES 
-                    (@Fecha, @SaldoInicial, @SaldoInicial, @Usuario, GETDATE())";
-
                 using (SqlConnection conn = new SqlConnection(connectionString))
                 {
-                    SqlCommand cmd = new SqlCommand(query, conn);
-                    cmd.Parameters.AddWithValue("@Fecha", caja.Fecha.Date);
-                    cmd.Parameters.AddWithValue("@SaldoInicial", caja.SaldoInicial);
-                    cmd.Parameters.AddWithValue("@Usuario", caja.Usuario ?? (object)DBNull.Value);
-
                     await conn.OpenAsync();
-                    int idGenerado = (int)await cmd.ExecuteScalarAsync();
 
-                    LogHelper.GuardarInfo(
-                        $"Caja creada: Fecha={caja.Fecha:dd/MM/yyyy}, SaldoInicial={caja.SaldoInicial:C}, Usuario={caja.Usuario}",
-                        "DaCajaDiaria",
-                        "InsertarAsync"
-                    );
+                    using (var tx = conn.BeginTransaction())
+                    {
+                        try
+                        {
+                            // Insert CajaDiaria y obtener Id
+                            int idGenerado;
+                            using (SqlCommand cmdCaja = new SqlCommand(sqlInsertCaja, conn, tx))
+                            {
+                                cmdCaja.Parameters.AddWithValue("@Fecha", caja.Fecha.Date);
+                                cmdCaja.Parameters.AddWithValue("@SaldoInicial", caja.SaldoInicial);
+                                cmdCaja.Parameters.AddWithValue("@Usuario", (object)caja.Usuario ?? DBNull.Value);
 
-                    return idGenerado;
+                                object outId = await cmdCaja.ExecuteScalarAsync();
+                                idGenerado = Convert.ToInt32(outId);
+                            }
+
+                            // Generar código de movimiento 
+                            string codMovimiento = await GenerarCodigoMovAsync(conn, tx);
+
+                            // Insert movimiento de apertura en LibroDiario
+                            using (SqlCommand cmdLibro = new SqlCommand(sqlInsertLibro, conn, tx))
+                            {
+                                cmdLibro.Parameters.AddWithValue("@CodMov", codMovimiento);
+                                cmdLibro.Parameters.AddWithValue("@IdCaja", idGenerado);
+                                cmdLibro.Parameters.AddWithValue("@Tipo", "INGRESO"); // valor de ejemplo
+                                cmdLibro.Parameters.AddWithValue("@Metodo", "EFECTIVO");
+                                cmdLibro.Parameters.AddWithValue("@Concepto", "Apertura de caja");
+                                cmdLibro.Parameters.AddWithValue("@Monto", caja.SaldoInicial);
+                                cmdLibro.Parameters.AddWithValue("@CodCliente", DBNull.Value);
+                                cmdLibro.Parameters.AddWithValue("@CodProveedor", DBNull.Value);
+                                cmdLibro.Parameters.AddWithValue("@CodOrden", DBNull.Value);
+                                cmdLibro.Parameters.AddWithValue("@Signo", 1);
+
+                                await cmdLibro.ExecuteNonQueryAsync();
+                            }
+
+                            tx.Commit();
+
+                            LogHelper.GuardarInfo(
+                                $"Caja creada: Id={idGenerado}, Fecha={caja.Fecha:dd/MM/yyyy}, SaldoInicial={caja.SaldoInicial:C}, Usuario={caja.Usuario}. Movimiento apertura: {codMovimiento}",
+                                "DaCajaDiaria",
+                                "InsertarAsync"
+                            );
+
+                            return idGenerado;
+                        }
+                        catch (SqlException exTx)
+                        {
+                            try { tx.Rollback(); } catch { /* ignorar fallo */ }
+                            LogHelper.GuardarError(exTx, "DaCajaDiaria", "InsertarAsync", $"Fecha: {caja.Fecha:yyyy-MM-dd}, SaldoInicial: {caja.SaldoInicial}");
+                            if (exTx.Number == 2627 || exTx.Number == 2601)
+                                throw new Exception($"Ya existe una caja para el día {caja.Fecha:dd/MM/yyyy}", exTx);
+                            throw new Exception($"Error al crear la caja y registrar apertura en LibroDiario: {exTx.Message}", exTx);
+                        }
+                    }
                 }
-            }
-            catch (SqlException ex)
-            {
-                LogHelper.GuardarError(ex, "DaCajaDiaria", "InsertarAsync", $"Fecha: {caja.Fecha:yyyy-MM-dd}, SaldoInicial: {caja.SaldoInicial}");
-
-                // Verificar error de UNIQUE constraint
-                if (ex.Number == 2627 || ex.Number == 2601)
-                {
-                    throw new Exception($"Ya existe una caja para el día {caja.Fecha:dd/MM/yyyy}", ex);
-                }
-
-                throw new Exception($"Error al crear la caja: {ex.Message}", ex);
             }
             catch (Exception ex)
             {
@@ -163,6 +252,9 @@ namespace Datos
                 throw;
             }
         }
+
+
+
 
         // =====================================================
         // MODIFICAR SALDO INICIAL (solo si no hay movimientos)
@@ -326,5 +418,36 @@ namespace Datos
                 throw;
             }
         }
+
+        private async Task<string> GenerarCodigoMovAsync(SqlConnection conn, SqlTransaction tran)
+        {
+            if (conn == null) throw new ArgumentNullException(nameof(conn));
+            if (tran == null) throw new ArgumentNullException(nameof(tran));
+
+            const string query = @" SELECT ISNULL(MAX(CAST(SUBSTRING(CodMovimiento, 3, 8) AS INT)), 0) FROM LibroDiario;";
+
+            try
+            {
+                // NO abrir ni cerrar la conexión aquí: la maneja el caller.
+                using (var cmd = new SqlCommand(query, conn, tran))
+                {
+                    object result = await cmd.ExecuteScalarAsync();
+                    int maxCodigo = (result == null || result == DBNull.Value) ? 0 : Convert.ToInt32(result);
+                    int siguienteCodigo = maxCodigo + 1;
+                    return "LD" + siguienteCodigo.ToString("D5"); // LD00001, LD00002, etc.
+                }
+            }
+            catch (SqlException ex)
+            {
+                LogHelper.GuardarError(ex, "DaCajaDiaria", "GenerarCodigoMovAsync");
+                throw new Exception($"Error al generar código de LibroDiario: {ex.Message}", ex);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.GuardarError(ex, "DaCajaDiaria", "GenerarCodigoMovAsync");
+                throw;
+            }
+        }
+
     }
 }

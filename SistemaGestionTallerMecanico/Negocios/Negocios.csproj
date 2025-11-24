@@ -49,10 +49,12 @@
   <ItemGroup>
     <Compile Include="NegCajaDiaria.cs" />
     <Compile Include="NegCliente.cs" />
+    <Compile Include="NegCuentaCorriente.cs" />
     <Compile Include="NegLibroDiario.cs" />
     <Compile Include="NegOrdenTrabajo.cs" />
     <Compile Include="NegProveedor.cs" />
     <Compile Include="NegVehiculo.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -64,8 +66,13 @@
       <Project>{a668b12f-d9ba-481c-b36c-7221e31ab57b}</Project>
       <Name>Entidades</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Utiles\Utiles.csproj">
+      <Project>{FD0B46E1-309E-4E95-9AC2-24972FC7008D}</Project>
+      <Name>Utiles</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

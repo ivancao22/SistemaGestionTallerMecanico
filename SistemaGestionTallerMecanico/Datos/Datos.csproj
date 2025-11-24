@@ -49,6 +49,7 @@
   <ItemGroup>
     <Compile Include="DaCajaDiaria.cs" />
     <Compile Include="DaCliente.cs" />
+    <Compile Include="DaCuentaCorriente.cs" />
     <Compile Include="DaLibroDiario.cs" />
     <Compile Include="DaOrdenTrabajo.cs" />
     <Compile Include="DaProveedor.cs" />
@@ -66,6 +67,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

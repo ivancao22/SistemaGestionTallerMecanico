@@ -35,11 +35,6 @@
             this.btnAgregarMovimiento = new System.Windows.Forms.Button();
             this.btnRecargarDgv = new System.Windows.Forms.Button();
             this.dgvMovimientos = new System.Windows.Forms.DataGridView();
-            this.txtFiltro = new System.Windows.Forms.TextBox();
-            this.label3 = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
-            this.dtpFecha = new System.Windows.Forms.DateTimePicker();
-            this.btnExcel = new System.Windows.Forms.Button();
             this.ColCodMovimiento = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColNombre = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColTipoUser = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -48,15 +43,28 @@
             this.ColMedioPago = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColImporte = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColDescripcion = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ColCodOrdenTrabajo = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColEditar = new System.Windows.Forms.DataGridViewImageColumn();
             this.ColBorrar = new System.Windows.Forms.DataGridViewImageColumn();
+            this.txtFiltro = new System.Windows.Forms.TextBox();
+            this.label3 = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
+            this.dtpFecha = new System.Windows.Forms.DateTimePicker();
+            this.btnExcel = new System.Windows.Forms.Button();
+            this.panelTop = new System.Windows.Forms.Panel();
+            this.panelDgv = new System.Windows.Forms.Panel();
+            this.panelBottom = new System.Windows.Forms.Panel();
             ((System.ComponentModel.ISupportInitialize)(this.dgvMovimientos)).BeginInit();
+            this.panelTop.SuspendLayout();
+            this.panelDgv.SuspendLayout();
+            this.panelBottom.SuspendLayout();
             this.SuspendLayout();
             // 
             // lblMontoCaja
             // 
+            this.lblMontoCaja.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.lblMontoCaja.AutoSize = true;
-            this.lblMontoCaja.Location = new System.Drawing.Point(92, 451);
+            this.lblMontoCaja.Location = new System.Drawing.Point(92, 11);
             this.lblMontoCaja.Name = "lblMontoCaja";
             this.lblMontoCaja.Size = new System.Drawing.Size(37, 13);
             this.lblMontoCaja.TabIndex = 25;
@@ -64,8 +72,9 @@
             // 
             // lblTextCaja
             // 
+            this.lblTextCaja.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.lblTextCaja.AutoSize = true;
-            this.lblTextCaja.Location = new System.Drawing.Point(11, 450);
+            this.lblTextCaja.Location = new System.Drawing.Point(11, 11);
             this.lblTextCaja.Name = "lblTextCaja";
             this.lblTextCaja.Size = new System.Drawing.Size(84, 13);
             this.lblTextCaja.TabIndex = 24;
@@ -73,11 +82,12 @@
             // 
             // btnPresupuesto
             // 
+            this.btnPresupuesto.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnPresupuesto.Image = ((System.Drawing.Image)(resources.GetObject("btnPresupuesto.Image")));
             this.btnPresupuesto.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnPresupuesto.Location = new System.Drawing.Point(513, 440);
+            this.btnPresupuesto.Location = new System.Drawing.Point(512, 0);
             this.btnPresupuesto.Name = "btnPresupuesto";
-            this.btnPresupuesto.Size = new System.Drawing.Size(139, 35);
+            this.btnPresupuesto.Size = new System.Drawing.Size(139, 32);
             this.btnPresupuesto.TabIndex = 23;
             this.btnPresupuesto.Text = "Realizar presupuesto";
             this.btnPresupuesto.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -86,11 +96,12 @@
             // 
             // btnAgregarMovimiento
             // 
+            this.btnAgregarMovimiento.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnAgregarMovimiento.Image = ((System.Drawing.Image)(resources.GetObject("btnAgregarMovimiento.Image")));
             this.btnAgregarMovimiento.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnAgregarMovimiento.Location = new System.Drawing.Point(658, 440);
+            this.btnAgregarMovimiento.Location = new System.Drawing.Point(653, 0);
             this.btnAgregarMovimiento.Name = "btnAgregarMovimiento";
-            this.btnAgregarMovimiento.Size = new System.Drawing.Size(132, 35);
+            this.btnAgregarMovimiento.Size = new System.Drawing.Size(132, 32);
             this.btnAgregarMovimiento.TabIndex = 22;
             this.btnAgregarMovimiento.Text = "Agregar movimiento";
             this.btnAgregarMovimiento.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -99,8 +110,9 @@
             // 
             // btnRecargarDgv
             // 
+            this.btnRecargarDgv.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnRecargarDgv.Image = ((System.Drawing.Image)(resources.GetObject("btnRecargarDgv.Image")));
-            this.btnRecargarDgv.Location = new System.Drawing.Point(720, 35);
+            this.btnRecargarDgv.Location = new System.Drawing.Point(714, 32);
             this.btnRecargarDgv.Name = "btnRecargarDgv";
             this.btnRecargarDgv.Size = new System.Drawing.Size(32, 31);
             this.btnRecargarDgv.TabIndex = 21;
@@ -111,6 +123,7 @@
             // dgvMovimientos
             // 
             this.dgvMovimientos.AllowUserToAddRows = false;
+            this.dgvMovimientos.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dgvMovimientos.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvMovimientos.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.ColCodMovimiento,
@@ -121,29 +134,97 @@
             this.ColMedioPago,
             this.ColImporte,
             this.ColDescripcion,
+            this.ColCodOrdenTrabajo,
             this.ColEditar,
             this.ColBorrar});
-            this.dgvMovimientos.Location = new System.Drawing.Point(9, 72);
+            this.dgvMovimientos.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.dgvMovimientos.Location = new System.Drawing.Point(6, 6);
             this.dgvMovimientos.Name = "dgvMovimientos";
             this.dgvMovimientos.RowHeadersVisible = false;
-            this.dgvMovimientos.Size = new System.Drawing.Size(781, 362);
+            this.dgvMovimientos.Size = new System.Drawing.Size(778, 354);
             this.dgvMovimientos.TabIndex = 20;
             this.dgvMovimientos.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvMovimientos_CellContentClick);
             // 
+            // ColCodMovimiento
+            // 
+            this.ColCodMovimiento.HeaderText = "Cod movimiento";
+            this.ColCodMovimiento.Name = "ColCodMovimiento";
+            this.ColCodMovimiento.Visible = false;
+            // 
+            // ColNombre
+            // 
+            this.ColNombre.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.ColNombre.HeaderText = "Nombre";
+            this.ColNombre.Name = "ColNombre";
+            // 
+            // ColTipoUser
+            // 
+            this.ColTipoUser.HeaderText = "Tipo usuario";
+            this.ColTipoUser.Name = "ColTipoUser";
+            // 
+            // ColTipoMovimiento
+            // 
+            this.ColTipoMovimiento.HeaderText = "Tipo movimiento";
+            this.ColTipoMovimiento.Name = "ColTipoMovimiento";
+            // 
+            // ColFechaMovimiento
+            // 
+            this.ColFechaMovimiento.HeaderText = "Fecha movimiento";
+            this.ColFechaMovimiento.Name = "ColFechaMovimiento";
+            // 
+            // ColMedioPago
+            // 
+            this.ColMedioPago.HeaderText = "Medio pago";
+            this.ColMedioPago.Name = "ColMedioPago";
+            // 
+            // ColImporte
+            // 
+            this.ColImporte.HeaderText = "Importe";
+            this.ColImporte.Name = "ColImporte";
+            // 
+            // ColDescripcion
+            // 
+            this.ColDescripcion.HeaderText = "Descripcion";
+            this.ColDescripcion.Name = "ColDescripcion";
+            // 
+            // ColCodOrdenTrabajo
+            // 
+            this.ColCodOrdenTrabajo.HeaderText = "OrdenAsociada";
+            this.ColCodOrdenTrabajo.Name = "ColCodOrdenTrabajo";
+            this.ColCodOrdenTrabajo.Visible = false;
+            // 
+            // ColEditar
+            // 
+            this.ColEditar.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.ColEditar.HeaderText = "";
+            this.ColEditar.Image = ((System.Drawing.Image)(resources.GetObject("ColEditar.Image")));
+            this.ColEditar.Name = "ColEditar";
+            this.ColEditar.Width = 20;
+            // 
+            // ColBorrar
+            // 
+            this.ColBorrar.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.ColBorrar.HeaderText = "";
+            this.ColBorrar.Image = ((System.Drawing.Image)(resources.GetObject("ColBorrar.Image")));
+            this.ColBorrar.Name = "ColBorrar";
+            this.ColBorrar.Width = 20;
+            // 
             // txtFiltro
             // 
-            this.txtFiltro.Location = new System.Drawing.Point(123, 42);
+            this.txtFiltro.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtFiltro.Location = new System.Drawing.Point(126, 41);
             this.txtFiltro.Name = "txtFiltro";
-            this.txtFiltro.Size = new System.Drawing.Size(260, 20);
+            this.txtFiltro.Size = new System.Drawing.Size(267, 20);
             this.txtFiltro.TabIndex = 18;
             this.txtFiltro.TextChanged += new System.EventHandler(this.txtFiltro_TextChanged);
             // 
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(11, 45);
+            this.label3.Location = new System.Drawing.Point(11, 44);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(97, 13);
+            this.label3.Size = new System.Drawing.Size(115, 13);
             this.label3.TabIndex = 17;
             this.label3.Text = "👤 Cliente/Proveedor : ";
             // 
@@ -167,98 +248,75 @@
             // 
             // btnExcel
             // 
+            this.btnExcel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnExcel.Image = ((System.Drawing.Image)(resources.GetObject("btnExcel.Image")));
-            this.btnExcel.Location = new System.Drawing.Point(758, 35);
+            this.btnExcel.Location = new System.Drawing.Point(752, 32);
             this.btnExcel.Name = "btnExcel";
             this.btnExcel.Size = new System.Drawing.Size(32, 31);
             this.btnExcel.TabIndex = 26;
             this.btnExcel.UseVisualStyleBackColor = true;
             this.btnExcel.Click += new System.EventHandler(this.btnExcel_Click);
             // 
-            // ColCodMovimiento
+            // panelTop
             // 
-            this.ColCodMovimiento.HeaderText = "Cod movimiento";
-            this.ColCodMovimiento.Name = "ColCodMovimiento";
-            this.ColCodMovimiento.Visible = false;
+            this.panelTop.Controls.Add(this.dtpFecha);
+            this.panelTop.Controls.Add(this.label1);
+            this.panelTop.Controls.Add(this.label3);
+            this.panelTop.Controls.Add(this.txtFiltro);
+            this.panelTop.Controls.Add(this.btnRecargarDgv);
+            this.panelTop.Controls.Add(this.btnExcel);
+            this.panelTop.Dock = System.Windows.Forms.DockStyle.Top;
+            this.panelTop.Location = new System.Drawing.Point(4, 4);
+            this.panelTop.Name = "panelTop";
+            this.panelTop.Padding = new System.Windows.Forms.Padding(6);
+            this.panelTop.Size = new System.Drawing.Size(790, 72);
+            this.panelTop.TabIndex = 0;
             // 
-            // ColNombre
+            // panelDgv
             // 
-            this.ColNombre.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.ColNombre.HeaderText = "Nombre";
-            this.ColNombre.Name = "ColNombre";
+            this.panelDgv.Controls.Add(this.dgvMovimientos);
+            this.panelDgv.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panelDgv.Location = new System.Drawing.Point(4, 76);
+            this.panelDgv.Name = "panelDgv";
+            this.panelDgv.Padding = new System.Windows.Forms.Padding(6);
+            this.panelDgv.Size = new System.Drawing.Size(790, 366);
+            this.panelDgv.TabIndex = 1;
             // 
-            // ColTipoUser
+            // panelBottom
             // 
-            this.ColTipoUser.HeaderText = "Tipo usuario";
-            this.ColTipoUser.Name = "ColTipoUser";
-            this.ColTipoUser.Width = 90;
-            // 
-            // ColTipoMovimiento
-            // 
-            this.ColTipoMovimiento.HeaderText = "Tipo movimiento";
-            this.ColTipoMovimiento.Name = "ColTipoMovimiento";
-            // 
-            // ColFechaMovimiento
-            // 
-            this.ColFechaMovimiento.HeaderText = "Fecha movimiento";
-            this.ColFechaMovimiento.Name = "ColFechaMovimiento";
-            this.ColFechaMovimiento.Width = 80;
-            // 
-            // ColMedioPago
-            // 
-            this.ColMedioPago.HeaderText = "Medio pago";
-            this.ColMedioPago.Name = "ColMedioPago";
-            // 
-            // ColImporte
-            // 
-            this.ColImporte.HeaderText = "Importe";
-            this.ColImporte.Name = "ColImporte";
-            this.ColImporte.Width = 75;
-            // 
-            // ColDescripcion
-            // 
-            this.ColDescripcion.HeaderText = "Descripcion";
-            this.ColDescripcion.Name = "ColDescripcion";
-            this.ColDescripcion.Width = 145;
-            // 
-            // ColEditar
-            // 
-            this.ColEditar.HeaderText = "";
-            this.ColEditar.Image = ((System.Drawing.Image)(resources.GetObject("ColEditar.Image")));
-            this.ColEditar.Name = "ColEditar";
-            this.ColEditar.Width = 20;
-            // 
-            // ColBorrar
-            // 
-            this.ColBorrar.HeaderText = "";
-            this.ColBorrar.Image = ((System.Drawing.Image)(resources.GetObject("ColBorrar.Image")));
-            this.ColBorrar.Name = "ColBorrar";
-            this.ColBorrar.Width = 20;
+            this.panelBottom.Controls.Add(this.lblTextCaja);
+            this.panelBottom.Controls.Add(this.lblMontoCaja);
+            this.panelBottom.Controls.Add(this.btnPresupuesto);
+            this.panelBottom.Controls.Add(this.btnAgregarMovimiento);
+            this.panelBottom.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.panelBottom.Location = new System.Drawing.Point(4, 442);
+            this.panelBottom.Name = "panelBottom";
+            this.panelBottom.Padding = new System.Windows.Forms.Padding(6);
+            this.panelBottom.Size = new System.Drawing.Size(790, 35);
+            this.panelBottom.TabIndex = 2;
             // 
             // frmLibroDiario
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(798, 481);
-            this.Controls.Add(this.btnExcel);
-            this.Controls.Add(this.lblMontoCaja);
-            this.Controls.Add(this.lblTextCaja);
-            this.Controls.Add(this.btnPresupuesto);
-            this.Controls.Add(this.btnAgregarMovimiento);
-            this.Controls.Add(this.btnRecargarDgv);
-            this.Controls.Add(this.dgvMovimientos);
-            this.Controls.Add(this.txtFiltro);
-            this.Controls.Add(this.label3);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.dtpFecha);
+            this.Controls.Add(this.panelDgv);
+            this.Controls.Add(this.panelTop);
+            this.Controls.Add(this.panelBottom);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.MinimumSize = new System.Drawing.Size(700, 420);
             this.Name = "frmLibroDiario";
+            this.Padding = new System.Windows.Forms.Padding(4);
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Libro diario";
             this.Load += new System.EventHandler(this.frmLibroDiario_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dgvMovimientos)).EndInit();
+            this.panelTop.ResumeLayout(false);
+            this.panelTop.PerformLayout();
+            this.panelDgv.ResumeLayout(false);
+            this.panelBottom.ResumeLayout(false);
+            this.panelBottom.PerformLayout();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
@@ -283,7 +341,11 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn ColMedioPago;
         private System.Windows.Forms.DataGridViewTextBoxColumn ColImporte;
         private System.Windows.Forms.DataGridViewTextBoxColumn ColDescripcion;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColCodOrdenTrabajo;
         private System.Windows.Forms.DataGridViewImageColumn ColEditar;
         private System.Windows.Forms.DataGridViewImageColumn ColBorrar;
+        private System.Windows.Forms.Panel panelTop;
+        private System.Windows.Forms.Panel panelDgv;
+        private System.Windows.Forms.Panel panelBottom;
     }
 }
